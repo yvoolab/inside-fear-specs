@@ -37,6 +37,6 @@ On-device TTS so the narration can follow a teacher's own script, proper anatomi
 Lens Studio 5.24.1 · Spectacles Interaction Kit 2.0 · Spectacles UI Kit 2.0 · LEAF 2.0.2 · Claude Code + CLAD (ls-clad) · Lens Studio MCP · TypeScript
 
 ## Links (form fields)
-- Video: https://youtu.be/bTYO3JB-hD0 (Unlisted until submission day, then Public)
+- Video: https://youtu.be/bTYO3JB-hD0 (Public since 2026-10-23)
 - Code: https://github.com/yvoolab/inside-fear-specs
-- Devpost draft (4/5 steps, Submit pending): https://devpost.com/submit-to/31659-learn-ar-with-specs/manage/submissions/1257811-inside-fear/finalization
+- Devpost project (submitted 2026-10-23, editable until 2026-11-09): https://devpost.com/software/inside-fear
