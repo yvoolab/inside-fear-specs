@@ -39,3 +39,4 @@ Lens Studio 5.24.1 · Spectacles Interaction Kit 2.0 · Spectacles UI Kit 2.0 ·
 ## Links (form fields)
 - Video: https://youtu.be/bTYO3JB-hD0 (Unlisted until submission day, then Public)
 - Code: https://github.com/yvoolab/inside-fear-specs
+- Devpost draft (4/5 steps, Submit pending): https://devpost.com/submit-to/31659-learn-ar-with-specs/manage/submissions/1257811-inside-fear/finalization
