@@ -1914,7 +1914,7 @@
       floorDropCm: !<float> "150,000000"
       minRadiusCm: !<float> "120,000000"
       maxRadiusCm: !<float> "280,000000"
-      calmColor: !<Vec4> {x: "0,550000", y: "0,750000", z: "1,000000", w: "1,000000"}
+      calmColor: !<Vec4> {x: "0,420000", y: "0,620000", z: "1,000000", w: "1,000000"}
       activeColor: !<Vec4> {x: "1,000000", y: "0,550000", z: "0,200000", w: "1,000000"}
   ScriptTypes:
     "":

@@ -61,6 +61,7 @@ export class InsideFearInterior extends BaseScriptComponent {
   private static FOCUS_DIRS = [new vec3(-0.3, 0.0, -1), new vec3(0.3, 0.05, -1), new vec3(0.7, 0.1, 1), new vec3(0, 0.05, -1)]
   private static PULSE_SPEED_CM_S = 140
   private static CUE_LEN = 12
+  private static INK_CM = 0.9
 
   private activity = 0
   private time = 0
@@ -72,6 +73,8 @@ export class InsideFearInterior extends BaseScriptComponent {
   private box = new vec3(1, 1, 1)
   private mat!: Material
   private doorMat!: Material
+  private shineMat!: Material
+  private inkMat!: Material
   private windowMat!: Material
   private nucleusMat!: Material
   private beadMat!: Material
@@ -89,7 +92,10 @@ export class InsideFearInterior extends BaseScriptComponent {
     }
     this.mat = this.neuronMaterial.clone()
     this.doorMat = this.neuronMaterial.clone()
-    this.windowMat = this.tint(1, 0.95, 0.72)
+    this.shineMat = this.neuronMaterial.clone()
+    this.inkMat = this.tint(0.17, 0.05, 0.1)   // storyboard outline colour; drawn as an inverted hull
+    this.inkMat.mainPass.cullMode = CullMode.Front
+    this.windowMat = this.tint(1, 0.93, 0.62)
     this.nucleusMat = this.tint(0.98, 0.6, 0.2)
     this.beadMat = this.tint(1, 0.93, 0.6)
     this.cableMat = this.tint(1, 0.96, 0.88)
@@ -105,6 +111,7 @@ export class InsideFearInterior extends BaseScriptComponent {
     const k = Math.max(0, Math.min(1, (this.activity - 0.3) / 0.7)), c = vec4.lerp(this.calmColor, this.activeColor, k * k * (3 - 2 * k))   // ≤0.3 stays calm blue (no muddy grey)
     this.mat.mainPass.baseColor = c
     this.doorMat.mainPass.baseColor = new vec4(c.x * 0.7, c.y * 0.7, c.z * 0.75, 1)
+    this.shineMat.mainPass.baseColor = vec4.lerp(c, new vec4(1, 1, 1, 1), 0.45)
     const showPulses = this.activity > 0.05
     for (const p of this.pulses) p.so.enabled = showPulses
   }
@@ -144,7 +151,7 @@ export class InsideFearInterior extends BaseScriptComponent {
       }
       const base = dir.uniformScale(radius).add(new vec3(0, fy, 0))
       bases.push(base)
-      this.neurons.push(this.buildTower(root, "Neuron" + i, base, size, i < n ? 3 : 2, rnd))
+      this.neurons.push(this.buildTower(root, "Neuron" + i, base, size, i < n ? 4 : 3, rnd))
       this.crowns.push(base.add(new vec3(0, 95 * size, 0)))
     }
     // Myelinated axons: each tower to its 2 nearest neighbours (deduped), along the floor
@@ -171,8 +178,8 @@ export class InsideFearInterior extends BaseScriptComponent {
   // makes the dark dome near-transparent on device; in preview / recordings it reads as "inside".
   private buildRoom(root: SceneObject, fy: number, rnd: () => number): void {
     const R = this.maxRadiusCm + 160
-    this.part(root, "Floor", this.neuronMesh, this.tint(0.85, 0.4, 0.5), new vec3(0, fy - 2, 0), new vec3(R * 2, 2, R * 2))
-    const cob = this.tint(0.96, 0.62, 0.68)
+    this.part(root, "Floor", this.neuronMesh, this.tint(0.9, 0.42, 0.52), new vec3(0, fy - 2, 0), new vec3(R * 2, 2, R * 2))
+    const cob = this.tint(1, 0.68, 0.74)
     for (let z = -R; z < R; z += 34) {
       for (let x = -R + ((z / 34) % 2 ? 22 : 0); x < R; x += 46) {
         const r = Math.sqrt(x * x + z * z)
@@ -180,7 +187,7 @@ export class InsideFearInterior extends BaseScriptComponent {
         this.part(root, "Cobble", this.neuronMesh, cob, new vec3(x + rnd() * 8, fy, z + rnd() * 6), new vec3(38 + rnd() * 6, 3, 26), quat.angleAxis(rnd() * 0.4 - 0.2, vec3.up()))
       }
     }
-    const dome = this.tint(0.36, 0.08, 0.16)
+    const dome = this.tint(0.6, 0.14, 0.28)   // saturated enough to read red, not grey, over the preview see-through
     dome.mainPass.twoSided = true
     this.part(root, "Dome", this.neuronMesh, dome, new vec3(0, fy, 0), new vec3(R * 2, R * 1.3, R * 2))
   }
@@ -194,19 +201,21 @@ export class InsideFearInterior extends BaseScriptComponent {
     t.setLocalPosition(base)
     t.setLocalRotation(quat.lookAt(new vec3(-base.x, 0, -base.z).normalize(), vec3.up()))   // +Z → user
     const w = this.neuronSizeCm * size, h = 80 * size
-    this.part(so, "Body", this.neuronMesh, this.mat, new vec3(0, h * 0.35, 0), new vec3(w, h, w))
-    this.part(so, "Window", this.neuronMesh, this.windowMat, new vec3(0, h * 0.55, w * 0.44), new vec3(w * 0.42, w * 0.42, 4))
+    this.part(so, "Body", this.neuronMesh, this.mat, new vec3(0, h * 0.35, 0), new vec3(w, h, w), undefined, true)
+    this.part(so, "Shine", this.neuronMesh, this.shineMat, new vec3(-w * 0.27, h * 0.42, w * 0.33), new vec3(w * 0.16, h * 0.5, 4))
+    this.part(so, "Window", this.neuronMesh, this.windowMat, new vec3(0, h * 0.55, w * 0.44), new vec3(w * 0.42, w * 0.42, 4), undefined, true)
     this.part(so, "Nucleus", this.neuronMesh, this.nucleusMat, new vec3(0, h * 0.55, w * 0.5), new vec3(w * 0.2, w * 0.2, 3))
-    this.part(so, "Door", this.neuronMesh, this.doorMat, new vec3(0, h * 0.05, w * 0.46), new vec3(w * 0.38, h * 0.32, 4))
-    this.branch(so, new vec3(0, h * 0.8, 0), vec3.up(), 26 * size, 2.6 * size, levels, rnd)
+    this.part(so, "Door", this.neuronMesh, this.doorMat, new vec3(0, h * 0.05, w * 0.46), new vec3(w * 0.38, h * 0.32, 4), undefined, true)
+    this.branch(so, new vec3(0, h * 0.8, 0), vec3.up(), 24 * size, 2.8 * size, levels, rnd)
     return so
   }
 
   private branch(parent: SceneObject, from: vec3, dir: vec3, len: number, thick: number, depth: number, rnd: () => number): void {
     const to = from.add(dir.uniformScale(len))
     this.rod(parent, from, to, thick, this.mat)
+    this.rod(parent, from, to, thick + InsideFearInterior.INK_CM * 2, this.inkMat)
     if (depth === 0) {
-      this.part(parent, "Bead", this.neuronMesh, this.beadMat, to, new vec3(4, 4, 4))
+      this.part(parent, "Bead", this.neuronMesh, this.beadMat, to, new vec3(4, 4, 4), undefined, true)
       return
     }
     const kids = depth >= 2 ? 3 : 2, phase = rnd() * Math.PI * 2
@@ -214,16 +223,16 @@ export class InsideFearInterior extends BaseScriptComponent {
       const phi = phase + (k / kids) * Math.PI * 2, tilt = 0.5 + rnd() * 0.3
       const side = new vec3(Math.cos(phi), 0, Math.sin(phi))
       const nd = dir.uniformScale(Math.cos(tilt)).add(side.uniformScale(Math.sin(tilt))).add(new vec3(0, 0.25, 0)).normalize()
-      this.branch(parent, to, nd, len * 0.72, thick * 0.7, depth - 1, rnd)
+      this.branch(parent, to, nd, len * 0.74, thick * 0.72, depth - 1, rnd)
     }
   }
 
   // Myelinated axon: chain of white capsules with small gaps (nodes of Ranvier); pulses ride it.
   private addCable(root: SceneObject, a: vec3, b: vec3): void {
-    const len = b.distance(a), seg = 16, n = Math.max(1, Math.floor(len / seg))
+    const len = b.distance(a), seg = 22, n = Math.max(1, Math.floor(len / seg))
     const rot = quat.rotationFromTo(vec3.forward(), b.sub(a).normalize())
     for (let k = 0; k < n; k++) {
-      this.part(root, "Myelin", this.neuronMesh, this.cableMat, vec3.lerp(a, b, (k + 0.5) / n), new vec3(5, 5, (len / n) * 0.82), rot)
+      this.part(root, "Myelin", this.neuronMesh, this.cableMat, vec3.lerp(a, b, (k + 0.5) / n), new vec3(5, 5, (len / n) * 0.82), rot, true)
     }
     this.synapses.push({a, b, len})
   }
@@ -239,7 +248,9 @@ export class InsideFearInterior extends BaseScriptComponent {
   }
 
   /** Sphere-mesh part sized in cm (x, y, z diameters). */
-  private part(parent: SceneObject, name: string, mesh: RenderMesh, mat: Material, pos: vec3, sizeCm: vec3, rot?: quat): SceneObject {
+  private part(parent: SceneObject, name: string, mesh: RenderMesh, mat: Material, pos: vec3, sizeCm: vec3, rot?: quat, outline = false): SceneObject {
+    // ponytail: inverted-hull outline doubles the object count (~1.9k total); merge meshes if Specs fps drops
+    if (outline) this.part(parent, name + "Ink", mesh, this.inkMat, pos, sizeCm.add(vec3.one().uniformScale(InsideFearInterior.INK_CM * 2)), rot)
     const so = global.scene.createSceneObject(name)
     so.setParent(parent)
     const t = so.getTransform()
