@@ -29,3 +29,4 @@ Support/
 # demo video lives next to devpost/ but is not tracked
 *.mp4
 *.mov
+.playwright-mcp/
