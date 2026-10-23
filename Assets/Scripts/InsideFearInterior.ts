@@ -2,7 +2,7 @@
 // Owns: runtime-built children under this SceneObject (high-cardinality, so script-built), the
 // activity level (0 = calm … 1 = firing) and its visual expression.
 // Expects: @input neuronMesh / synapseMesh / neuronMaterial (authored assets wired by the bootstrap).
-// Must not: know about steps, buttons or the brain — Main drives setActivity() and reads focusPointWorld().
+// Must not: know about buttons, narration or the brain — Main drives setActivity() / stage(n) and reads focusPointWorld().
 import {Billboard} from "SpectaclesInteractionKit.lspkg/Components/Interaction/Billboard/Billboard"
 
 @component
@@ -26,7 +26,7 @@ export class InsideFearInterior extends BaseScriptComponent {
   @ui.label('<span style="color: #60A5FA;">Settings</span>')
   @ui.group_start("Settings")
   @input
-  @hint("How many neuron towers surround the user (first 4 are the per-step focus points)")
+  @hint("How many neuron towers surround the user (first 4 are the step towers)")
   @widget(new SliderWidget(6, 24, 1))
   neuronCount: number = 12
   @input
@@ -53,12 +53,22 @@ export class InsideFearInterior extends BaseScriptComponent {
   @widget(new ColorWidget())
   @hint("Neuron color when firing")
   activeColor: vec4
+  @input('vec4', '{1,0.18,0.22,1}')
+  @widget(new ColorWidget())
+  @hint("Neuron color during the alarm (activity above 1)")
+  alarmColor: vec4
   @ui.group_end
 
-  // Fixed directions of the 4 focus neurons: step 1 left, step 2 right (both in the forward view),
-  // step 3 BEHIND-right (the alarm leaves the amygdala toward "other organs" — the user must turn,
-  // guided by the cue arrow + spatial sound), step 4 center.
-  private static FOCUS_DIRS = [new vec3(-0.3, 0.0, -1), new vec3(0.3, 0.05, -1), new vec3(0.7, 0.1, 1), new vec3(0, 0.05, -1)]
+  // Six steps (approved plan + mock): 1 purple thalamus box, right-front · 2 shortcut cable thalamus → amygdala
+  // tower (front) · 3 two towers + glutamate across the synapse, front · 4 alarm tower BEHIND-right (red lamp +
+  // body labels; the user must turn, guided by the cue arrow + spatial sound) · 5 purple prefrontal tower,
+  // right-front and taller, sends blue calming waves · 6 everything calm, front.
+  // Step towers: amygdala (front), synapse partner (just behind it, right), alarm (behind-right), prefrontal (right-front).
+  private static TOWER_DIRS = [new vec3(0, 0, -1), new vec3(0.14, 0, -1), new vec3(0.7, 0, 1), new vec3(0.5, 0, -1)]
+  private static TOWER_SIZES = [1.3, 1.3, 1.3, 1.6]
+  private static TOWER_DIST_CM = [220, 330, 220, 240]   // a whole tower fits the Specs FOV at ~2.2 m
+  private static THALAMUS_DIR = new vec3(0.24, 0, -1)
+  private static STREAM_STEPS = [2, 3, 5]   // shortcut beads · glutamate beads · calming waves
   private static PULSE_SPEED_CM_S = 140
   private static CUE_LEN = 12
   private static INK_CM = 0.9
@@ -69,6 +79,8 @@ export class InsideFearInterior extends BaseScriptComponent {
   private synapses: {a: vec3; b: vec3; len: number}[] = []
   private pulses: {so: SceneObject; syn: number; t: number}[] = []
   private crowns: vec3[] = []
+  private thalamusTop = vec3.zero()
+  private streams: {a: vec3; b: vec3; beads: SceneObject[]}[] = []
   private sphere = 1
   private box = new vec3(1, 1, 1)
   private mat!: Material
@@ -105,10 +117,11 @@ export class InsideFearInterior extends BaseScriptComponent {
     this.createEvent("UpdateEvent").bind(() => this.tick())
   }
 
-  /** 0 = calm (pulses stop, cool color) … 1 = firing (fast pulses, warm color). */
+  /** 0 = calm (pulses stop, cool blue) … 1 = firing (orange) … 2 = alarm (red, fastest pulses). */
   setActivity(level: number): void {
-    this.activity = Math.max(0, Math.min(1, level))
-    const k = Math.max(0, Math.min(1, (this.activity - 0.3) / 0.7)), c = vec4.lerp(this.calmColor, this.activeColor, k * k * (3 - 2 * k))   // ≤0.3 stays calm blue (no muddy grey)
+    this.activity = Math.max(0, Math.min(2, level))
+    const ss = (x: number) => { const k = Math.max(0, Math.min(1, x)); return k * k * (3 - 2 * k) }
+    const c = vec4.lerp(vec4.lerp(this.calmColor, this.activeColor, ss((this.activity - 0.3) / 0.7)), this.alarmColor, ss(this.activity - 1))   // ≤0.3 stays calm blue (no muddy grey)
     this.mat.mainPass.baseColor = c
     this.doorMat.mainPass.baseColor = new vec4(c.x * 0.7, c.y * 0.7, c.z * 0.75, 1)
     this.shineMat.mainPass.baseColor = vec4.lerp(c, new vec4(1, 1, 1, 1), 0.45)
@@ -118,10 +131,16 @@ export class InsideFearInterior extends BaseScriptComponent {
 
   getActivity(): number { return this.activity }
 
-  /** World position of the tower crown a step should be explained next to (step 1..4). */
+  /** World position a step happens at (step 1..6). */
   focusPointWorld(step: number): vec3 {
-    const i = Math.max(0, Math.min(this.crowns.length - 1, step - 1))
-    return this.sceneObject.getTransform().getWorldTransform().multiplyPoint(this.crowns[i])
+    const c = this.crowns, at = [this.thalamusTop, vec3.lerp(this.thalamusTop, c[0], 0.5), c[0], c[2], c[3], c[0]]
+    return this.sceneObject.getTransform().getWorldTransform().multiplyPoint(at[Math.max(0, Math.min(at.length - 1, step - 1))])
+  }
+
+  /** Per-step props: shortcut beads (2), glutamate beads (3), alarm lamp + labels (4), calming waves (5). 0 = none. */
+  stage(step: number): void {
+    this.streams.forEach((st, i) => st.beads.forEach((b) => (b.enabled = step === InsideFearInterior.STREAM_STEPS[i])))
+    this.showOrgan(step === 4)
   }
 
   // Cartoon "amygdala town" (brief: towers = neurons, white segmented cables = myelinated axons,
@@ -135,14 +154,14 @@ export class InsideFearInterior extends BaseScriptComponent {
     const fy = -this.floorDropCm
     this.buildRoom(root, fy, rnd)
     const bases: vec3[] = []
-    const n = InsideFearInterior.FOCUS_DIRS.length
+    const n = InsideFearInterior.TOWER_DIRS.length
+    const purple = this.tint(0.62, 0.45, 0.98)   // prefrontal cortex tower keeps its own colour
     for (let i = 0; i < this.neuronCount; i++) {
       let dir: vec3, radius: number, size: number
       if (i < n) {
-        const d = InsideFearInterior.FOCUS_DIRS[i]
-        dir = new vec3(d.x, 0, d.z).normalize()
-        radius = (this.minRadiusCm + this.maxRadiusCm) * 0.55   // ~2.2 m: a whole tower fits the Specs FOV
-        size = 1.3
+        dir = InsideFearInterior.TOWER_DIRS[i].normalize()
+        radius = InsideFearInterior.TOWER_DIST_CM[i]
+        size = InsideFearInterior.TOWER_SIZES[i]
       } else {   // background towers spread evenly round the user, jittered
         const a = ((i - n) / (this.neuronCount - n)) * Math.PI * 2 + rnd() * 0.4
         dir = new vec3(Math.sin(a), 0, -Math.cos(a))
@@ -151,9 +170,16 @@ export class InsideFearInterior extends BaseScriptComponent {
       }
       const base = dir.uniformScale(radius).add(new vec3(0, fy, 0))
       bases.push(base)
-      this.neurons.push(this.buildTower(root, "Neuron" + i, base, size, i < n ? 4 : 3, rnd))
+      this.neurons.push(this.buildTower(root, "Neuron" + i, base, size, i < n ? 4 : 3, rnd, i === 3 ? purple : this.mat))
       this.crowns.push(base.add(new vec3(0, 95 * size, 0)))
     }
+    // Step props: thalamus + shortcut cable into the amygdala tower, synapse cable to its partner, prefrontal waves
+    const c = this.crowns, thalamusSide = this.buildThalamus(root, fy)
+    this.myelin(root, thalamusSide, c[0])
+    this.myelin(root, c[0], c[1])
+    this.addStream(root, thalamusSide, c[0], this.pulseMat)
+    this.addStream(root, c[0], c[1], this.beadMat)
+    this.addStream(root, this.crowns[3], this.crowns[0], this.tint(0.45, 0.8, 1), 20)
     // Myelinated axons: each tower to its 2 nearest neighbours (deduped), along the floor
     const seen = new Set<string>()
     for (let i = 0; i < bases.length; i++) {
@@ -194,25 +220,25 @@ export class InsideFearInterior extends BaseScriptComponent {
 
   // One neuron: capsule-ish body facing the user, round window with nucleus, door, branching
   // dendrite antenna with bead tips. `size` 1 ≈ 70 cm body + ~60 cm crown.
-  private buildTower(root: SceneObject, name: string, base: vec3, size: number, levels: number, rnd: () => number): SceneObject {
+  private buildTower(root: SceneObject, name: string, base: vec3, size: number, levels: number, rnd: () => number, mat: Material): SceneObject {
     const so = global.scene.createSceneObject(name)
     so.setParent(root)
     const t = so.getTransform()
     t.setLocalPosition(base)
     t.setLocalRotation(quat.lookAt(new vec3(-base.x, 0, -base.z).normalize(), vec3.up()))   // +Z → user
     const w = this.neuronSizeCm * size, h = 80 * size
-    this.part(so, "Body", this.neuronMesh, this.mat, new vec3(0, h * 0.35, 0), new vec3(w, h, w), undefined, true)
+    this.part(so, "Body", this.neuronMesh, mat, new vec3(0, h * 0.35, 0), new vec3(w, h, w), undefined, true)
     this.part(so, "Shine", this.neuronMesh, this.shineMat, new vec3(-w * 0.27, h * 0.42, w * 0.33), new vec3(w * 0.16, h * 0.5, 4))
     this.part(so, "Window", this.neuronMesh, this.windowMat, new vec3(0, h * 0.55, w * 0.44), new vec3(w * 0.42, w * 0.42, 4), undefined, true)
     this.part(so, "Nucleus", this.neuronMesh, this.nucleusMat, new vec3(0, h * 0.55, w * 0.5), new vec3(w * 0.2, w * 0.2, 3))
     this.part(so, "Door", this.neuronMesh, this.doorMat, new vec3(0, h * 0.05, w * 0.46), new vec3(w * 0.38, h * 0.32, 4), undefined, true)
-    this.branch(so, new vec3(0, h * 0.8, 0), vec3.up(), 24 * size, 2.8 * size, levels, rnd)
+    this.branch(so, new vec3(0, h * 0.8, 0), vec3.up(), 24 * size, 2.8 * size, levels, rnd, mat)
     return so
   }
 
-  private branch(parent: SceneObject, from: vec3, dir: vec3, len: number, thick: number, depth: number, rnd: () => number): void {
+  private branch(parent: SceneObject, from: vec3, dir: vec3, len: number, thick: number, depth: number, rnd: () => number, mat: Material): void {
     const to = from.add(dir.uniformScale(len))
-    this.rod(parent, from, to, thick, this.mat)
+    this.rod(parent, from, to, thick, mat)
     this.rod(parent, from, to, thick + InsideFearInterior.INK_CM * 2, this.inkMat)
     if (depth === 0) {
       this.part(parent, "Bead", this.neuronMesh, this.beadMat, to, new vec3(4, 4, 4), undefined, true)
@@ -223,18 +249,65 @@ export class InsideFearInterior extends BaseScriptComponent {
       const phi = phase + (k / kids) * Math.PI * 2, tilt = 0.5 + rnd() * 0.3
       const side = new vec3(Math.cos(phi), 0, Math.sin(phi))
       const nd = dir.uniformScale(Math.cos(tilt)).add(side.uniformScale(Math.sin(tilt))).add(new vec3(0, 0.25, 0)).normalize()
-      this.branch(parent, to, nd, len * 0.74, thick * 0.72, depth - 1, rnd)
+      this.branch(parent, to, nd, len * 0.74, thick * 0.72, depth - 1, rnd, mat)
     }
   }
 
   // Myelinated axon: chain of white capsules with small gaps (nodes of Ranvier); pulses ride it.
   private addCable(root: SceneObject, a: vec3, b: vec3): void {
+    this.myelin(root, a, b)
+    this.synapses.push({a, b, len: b.distance(a)})
+  }
+
+  private myelin(root: SceneObject, a: vec3, b: vec3): void {
     const len = b.distance(a), seg = 22, n = Math.max(1, Math.floor(len / seg))
     const rot = quat.rotationFromTo(vec3.forward(), b.sub(a).normalize())
     for (let k = 0; k < n; k++) {
       this.part(root, "Myelin", this.neuronMesh, this.cableMat, vec3.lerp(a, b, (k + 0.5) / n), new vec3(5, 5, (len / n) * 0.82), rot, true)
     }
-    this.synapses.push({a, b, len})
+  }
+
+  /** Three beads that run a → b only during their step (see stage()). */
+  private addStream(root: SceneObject, a: vec3, b: vec3, mat: Material, sizeCm = 9): void {
+    const beads = [0, 1, 2].map((k) => this.part(root, "StreamBead" + k, this.neuronMesh, mat, a, vec3.one().uniformScale(sizeCm)))   // no ink hull: it would stay behind when hidden
+    beads.forEach((o) => (o.enabled = false))
+    this.streams.push({a, b, beads})
+  }
+
+  // Thalamus: purple relay box on a stand with four lit windows and a sign. Returns where its cable leaves.
+  private buildThalamus(root: SceneObject, fy: number): vec3 {
+    const dir = InsideFearInterior.THALAMUS_DIR.normalize()
+    const base = dir.uniformScale(205).add(new vec3(0, fy, 0))
+    const so = global.scene.createSceneObject("Thalamus")
+    so.setParent(root)
+    so.getTransform().setLocalPosition(base)
+    so.getTransform().setLocalRotation(quat.lookAt(new vec3(-base.x, 0, -base.z).normalize(), vec3.up()))   // +Z → user
+    this.block(so, "Stand", this.tint(0.45, 0.33, 0.7), new vec3(0, 60, 0), new vec3(12, 120, 12))
+    this.block(so, "Box", this.tint(0.68, 0.56, 0.95), new vec3(0, 142, 0), new vec3(46, 34, 26))
+    for (let k = 0; k < 4; k++) this.block(so, "Lamp", this.windowMat, new vec3(-15 + k * 10, 143, 14), new vec3(6.5, 8, 2))
+    const label = global.scene.createSceneObject("ThalamusLabel")
+    label.setParent(root)
+    label.getTransform().setLocalPosition(base.add(new vec3(0, 172, 0)))
+    const txt = label.createComponent("Component.Text") as Text
+    txt.text = "THALAMUS\nsensory relay"
+    txt.size = 150
+    txt.textFill.color = new vec4(0.92, 0.86, 1, 1)
+    txt.horizontalAlignment = HorizontalAlignment.Center
+    label.createComponent(Billboard.getTypeName())
+    this.thalamusTop = base.add(new vec3(0, 159, 0))
+    const toUser = new vec3(-dir.x, 0, -dir.z), left = new vec3(toUser.z, 0, -toUser.x)   // box side facing the amygdala tower
+    return base.add(new vec3(0, 138, 0)).add(left.uniformScale(-23))
+  }
+
+  /** Box-mesh part sized in cm, with ink outline. */
+  private block(parent: SceneObject, name: string, mat: Material, pos: vec3, sizeCm: vec3): void {
+    for (const [m, sz] of [[this.inkMat, sizeCm.add(vec3.one().uniformScale(InsideFearInterior.INK_CM * 2))], [mat, sizeCm]] as [Material, vec3][]) {
+      const so = global.scene.createSceneObject(name)
+      so.setParent(parent)
+      so.getTransform().setLocalPosition(pos)
+      so.getTransform().setLocalScale(new vec3(sz.x / this.box.x, sz.y / this.box.y, sz.z / this.box.z))
+      this.addVisual(so, this.synapseMesh, m)
+    }
   }
 
   private rod(parent: SceneObject, a: vec3, b: vec3, thick: number, mat: Material): void {
@@ -303,7 +376,7 @@ export class InsideFearInterior extends BaseScriptComponent {
   hideCue(): void { this.cueRod.enabled = false; this.cueTip.enabled = false }
   isCueVisible(): boolean { return this.cueRod.enabled }
 
-  // ── Step 3 "other organs": a red pulsing sphere above the step-3 neuron, with a small label ──
+  // ── Step 4 alarm: a red pulsing lamp above the alarm tower, with what the body does ──
   private buildOrgan(root: SceneObject, sphereSize: number): void {
     this.organ = global.scene.createSceneObject("OrganPulse")
     this.organ.setParent(root)
@@ -313,7 +386,7 @@ export class InsideFearInterior extends BaseScriptComponent {
     this.organLabel = global.scene.createSceneObject("OrganLabel")
     this.organLabel.setParent(root)
     const txt = this.organLabel.createComponent("Component.Text") as Text
-    txt.text = "heart & lungs\nspeed up"
+    txt.text = "HEART ↑\nBREATH ↑\nFREEZE"
     txt.size = 200   // plain world Text at ~160 cm: ~8 cm cap height
     txt.textFill.color = new vec4(1, 0.9, 0.9, 1)
     txt.horizontalAlignment = HorizontalAlignment.Center
@@ -324,9 +397,9 @@ export class InsideFearInterior extends BaseScriptComponent {
 
   showOrgan(on: boolean): void {
     if (on) {
-      const p = this.focusPointWorld(3).add(new vec3(0, 26, 0))
-      this.organ.getTransform().setWorldPosition(p)
-      this.organLabel.getTransform().setWorldPosition(p.add(new vec3(0, -18, 0)))
+      const p = this.focusPointWorld(4)
+      this.organ.getTransform().setWorldPosition(p.add(new vec3(0, 72, 0)))   // lamp just above the tree top
+      this.organLabel.getTransform().setWorldPosition(p.add(new vec3(0, 8, 0)))
     }
     this.organ.enabled = on
     this.organLabel.enabled = on
@@ -348,7 +421,7 @@ export class InsideFearInterior extends BaseScriptComponent {
     const dt = getDeltaTime()
     this.time += dt
     if (this.organ.enabled) {   // heartbeat ~1.5 Hz
-      const s = (10 / this.sphere) * (1 + 0.25 * Math.max(0, Math.sin(this.time * 9.4)))
+      const s = (16 / this.sphere) * (1 + 0.25 * Math.max(0, Math.sin(this.time * 9.4)))
       this.organ.getTransform().setLocalScale(new vec3(s, s, s))
     }
     if (this.cueRod.enabled) {  // gentle bob so the arrow catches the eye
@@ -356,6 +429,10 @@ export class InsideFearInterior extends BaseScriptComponent {
       const base = this.cueTip.getTransform().getLocalScale()
       const k = 1 + 0.15 * Math.sin(this.time * 6)
       t.setLocalScale(base.uniformScale(k / (1 + 0.15 * Math.sin((this.time - dt) * 6))))
+    }
+    for (const st of this.streams) {
+      if (!st.beads[0].enabled) continue
+      st.beads.forEach((b, k) => b.getTransform().setLocalPosition(vec3.lerp(st.a, st.b, (this.time * 0.6 + k / 3) % 1)))
     }
     if (this.activity <= 0.05) return
     for (const p of this.pulses) {

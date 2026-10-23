@@ -1,5 +1,5 @@
 // InsideFearMain — the experience state machine (single source of truth for state + step).
-// Owns: state ("outside" | "triggered" | "entering" | "inside" | "exiting"), step (0..4), amygdala glow,
+// Owns: state ("outside" | "triggered" | "entering" | "inside" | "exiting"), step (0..6), amygdala glow,
 // the grow/shrink envelope transition, audio playback, and what each UI module shows.
 // Expects: @inputs wired by the bootstrap (brain, amygdala, interior, 4 UI modules, camera).
 // Must not: build UI or author scene roots — those are authored SceneObjects / UI modules.
@@ -20,15 +20,27 @@ const SFX_STEPS = [
   requireAsset("../GeneratedSFX/Step3.wav") as AudioTrackAsset,
   requireAsset("../GeneratedSFX/Step4.wav") as AudioTrackAsset,
 ]
+const SFX_FOR_STEP = [0, 1, 1, 2, 3, 3]   // stimulus · firing · firing · alarm · calming · calming
+const NARRATION = [   // Neuri's lines (tools/neuri_voice.py), spoken from her card
+  requireAsset("../Narration/Neuri1.mp3") as AudioTrackAsset,
+  requireAsset("../Narration/Neuri2.mp3") as AudioTrackAsset,
+  requireAsset("../Narration/Neuri3.mp3") as AudioTrackAsset,
+  requireAsset("../Narration/Neuri4.mp3") as AudioTrackAsset,
+  requireAsset("../Narration/Neuri5.mp3") as AudioTrackAsset,
+  requireAsset("../Narration/Neuri6.mp3") as AudioTrackAsset,
+]
 
 export type InsideFearState = "outside" | "triggered" | "entering" | "inside" | "exiting"
 
-// Textbook fear pathway, introductory level. Overridable per step via the `stepTexts` input.
+// Neuri's six storyboard steps (tools/concept_diagrams.py STEPS5): title, her line, neuron activity
+// (0 calm blue · 1 firing orange · 2 alarm red). Overridable per step via the `stepTexts` input.
 const DEFAULT_STEPS: {title: string; body: string; activity: number}[] = [
-  {title: "1 · Stimulus", body: "The voice of blame arrives as a signal from the auditory pathway into the amygdala.", activity: 0.5},
-  {title: "2 · Neurons fire", body: "Amygdala neurons activate; glutamate is released across the synapses.", activity: 1.0},
-  {title: "3 · Alarm goes out", body: "A signal reaches the hypothalamus; adrenaline and cortisol are released, heart and breathing speed up.", activity: 0.9},
-  {title: "4 · Fear fades", body: "The threat passes. Neurons calm down and the amygdala returns to normal.", activity: 0.0},
+  {title: "1 · Sound arrives", body: "I just heard Mom scold me: “How could you?!” I jumped! Right now the sound is going from my ears to my thalamus, the relay station in my brain.", activity: 0.35},
+  {title: "2 · The fast shortcut", body: "I'm scared, and I don't even know why yet. A shortcut has already carried the sound straight into my amygdala, faster than I can understand the words.", activity: 1.0},
+  {title: "3 · Neurons fire", body: "My whole body tenses up. Inside my amygdala, neurons are firing: glutamate jumps across the synapses and the signal races to the central nucleus.", activity: 1.0},
+  {title: "4 · Alarm goes out", body: "My heart is pounding, I can't move... I just want to run away! My amygdala's alarm told my hypothalamus and brainstem: adrenaline, fast breathing, freeze!", activity: 1.8},
+  {title: "5 · The slow road checks", body: "Wait... it's only words. Mom isn't dangerous. My prefrontal cortex checks the details and tells my amygdala to calm down. Phew.", activity: 0.35},
+  {title: "6 · Fear fades", body: "My breathing slows down and I feel calm again. My neurons have settled, but stress hormones take a while to fade, so I still feel a bit shaky.", activity: 0.0},
 ]
 
 @component
@@ -140,7 +152,7 @@ export class InsideFearMain extends BaseScriptComponent {
       this.interior.sceneObject.enabled = true
       this.interior.setActivity(0.3)
       this.interior.hideCue()
-      this.interior.showOrgan(false)
+      this.interior.stage(0)
       this.nav.setVisible(true)
       this.step = 0
       this.setState("inside")
@@ -150,23 +162,26 @@ export class InsideFearMain extends BaseScriptComponent {
   private onNextPressed(): void {
     if (this.state !== "inside") return
     this.play(SFX_CLICK)
-    if (this.step >= 4) { this.stepCard.hide(); return }   // tour over: label disappears
+    const last = DEFAULT_STEPS.length
+    if (this.step >= last) { this.stepCard.hide(); return }   // tour over: label disappears
     this.step += 1
     const s = this.stepFor(this.step)
     this.interior.setActivity(s.activity)
-    if (this.step === 4) this.setLit(false)                 // fear fades → amygdala back to normal
+    if (this.step === last) this.setLit(false)              // fear fades → amygdala back to normal
     const focus = this.interior.focusPointWorld(this.step)
     this.neuriCard.showStep(this.step)
     this.stepCard.showStep(s.title, s.body)
-    this.play(SFX_STEPS[this.step - 1], focus)          // narration cue comes from the event (spatial)
+    this.play(SFX_STEPS[SFX_FOR_STEP[this.step - 1]], focus)   // event cue comes from the event (spatial)
+    this.speak(NARRATION[this.step - 1], this.neuriCard.getSceneObject().getTransform().getWorldPosition())
     this.cueIfOutOfView(focus)
-    this.interior.showOrgan(this.step === 3)
+    this.interior.stage(this.step)
     print("[InsideFear] state=" + this.state + " step=" + this.step + " lit=" + this.amygdalaLit)
   }
 
   private onExitPressed(): void {
     if (this.state !== "inside") return
     this.play(SFX_CLICK)
+    if (this.voice?.isPlaying()) this.voice.stop(false)
     this.nav.setVisible(false)
     this.stepCard.hide()
     this.neuriCard.hide()
@@ -246,6 +261,22 @@ export class InsideFearMain extends BaseScriptComponent {
     if (at) this.emitter().getTransform().setWorldPosition(at)
     a.volume = this.volume
     a.play(1)
+  }
+
+  private voice: AudioComponent | null = null
+  /** Neuri's line, from where her card floats; a new line cuts the previous one. */
+  private speak(track: AudioTrackAsset, at: vec3): void {
+    if (!this.voice) {
+      const so = global.scene.createSceneObject("NeuriVoice")
+      so.setParent(this.sceneObject)
+      this.voice = so.createComponent("Component.AudioComponent") as AudioComponent
+      this.voice.spatialAudio.enabled = true
+    }
+    if (this.voice.isPlaying()) this.voice.stop(false)
+    this.voice.audioTrack = track
+    this.voice.volume = this.volume
+    this.voice.getSceneObject().getTransform().setWorldPosition(at)
+    this.voice.play(1)
   }
 
   private emitterObj: SceneObject | null = null

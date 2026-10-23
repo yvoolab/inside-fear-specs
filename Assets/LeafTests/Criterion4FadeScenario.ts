@@ -12,13 +12,13 @@ export class Criterion4FadeScenario extends Scenario {
     await ensureOutside()
     const normal = amygdalaColor()
     await goInside()
-    for (let n = 1; n <= 3; n++) await tap("Next")
-    expect(main().step).toBe(3)
+    for (let n = 1; n <= 5; n++) await tap("Next")
+    expect(main().step).toBe(5)
     expect(main().amygdalaLit).toBe(true)
-    expect(interior().getActivity()).toBeGreaterThan(0.5)
+    expect(interior().getActivity()).toBeGreaterThan(0.3)   // easing, not yet calm
 
     await tap("Next")                                   // final step
-    expect(main().step).toBe(4)
+    expect(main().step).toBe(6)
     expect(interior().getActivity()).toBe(0)            // neurons calm
     expect(stepCardText().toLowerCase().includes("fear fades")).toBe(true)
     expect(main().amygdalaLit).toBe(false)

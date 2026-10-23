@@ -1220,7 +1220,7 @@
       caption: !<reference.SceneObject> 699c14aa-5810-442b-b017-40618a2585f0
       widthCm: !<float> "18,000000"
       distanceCm: !<float> "100,000000"
-      leftDeg: !<float> "9,000000"
+      leftDeg: !<float> "7,000000"
       dropCm: !<float> "-16,000000"
   ScriptTypes:
     "":
@@ -1940,6 +1940,7 @@
     floorDropCm: true
     minRadiusCm: true
     maxRadiusCm: true
+    alarmColor: true
   ScriptTypesDefault:
     {}
   ScriptInputs:
@@ -1954,6 +1955,7 @@
       maxRadiusCm: !<float> "280,000000"
       calmColor: !<Vec4> {x: "0,420000", y: "0,620000", z: "1,000000", w: "1,000000"}
       activeColor: !<Vec4> {x: "1,000000", y: "0,550000", z: "0,200000", w: "1,000000"}
+      alarmColor: !<Vec4> {x: "1,000000", y: "0,000000", z: "0,000000", w: "1,000000"}
   ScriptTypes:
     "":
       {}
