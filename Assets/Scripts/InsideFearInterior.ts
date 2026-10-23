@@ -26,13 +26,17 @@ export class InsideFearInterior extends BaseScriptComponent {
   @ui.label('<span style="color: #60A5FA;">Settings</span>')
   @ui.group_start("Settings")
   @input
-  @hint("How many neurons surround the user (first 4 are the per-step focus points)")
-  @widget(new SliderWidget(6, 40, 1))
-  neuronCount: number = 18
+  @hint("How many neuron towers surround the user (first 4 are the per-step focus points)")
+  @widget(new SliderWidget(6, 24, 1))
+  neuronCount: number = 12
   @input
-  @hint("Neuron body diameter in cm")
-  @widget(new SliderWidget(4, 40, 1))
-  neuronSizeCm: number = 14
+  @hint("Tower body width in cm")
+  @widget(new SliderWidget(20, 60, 1))
+  neuronSizeCm: number = 36
+  @input
+  @hint("Floor distance below the user's eyes, cm")
+  @widget(new SliderWidget(80, 200, 5))
+  floorDropCm: number = 150
   @input
   @hint("Nearest / farthest neuron distance from the user, cm (brief: 1–3 m)")
   @widget(new SliderWidget(60, 400, 10))
@@ -63,7 +67,15 @@ export class InsideFearInterior extends BaseScriptComponent {
   private neurons: SceneObject[] = []
   private synapses: {a: vec3; b: vec3; len: number}[] = []
   private pulses: {so: SceneObject; syn: number; t: number}[] = []
+  private crowns: vec3[] = []
+  private sphere = 1
+  private box = new vec3(1, 1, 1)
   private mat!: Material
+  private doorMat!: Material
+  private windowMat!: Material
+  private nucleusMat!: Material
+  private beadMat!: Material
+  private cableMat!: Material
   private pulseMat!: Material
   private cueRod!: SceneObject
   private cueTip!: SceneObject
@@ -76,8 +88,12 @@ export class InsideFearInterior extends BaseScriptComponent {
       return
     }
     this.mat = this.neuronMaterial.clone()
-    this.pulseMat = this.neuronMaterial.clone()
-    this.pulseMat.mainPass.baseColor = new vec4(1, 1, 1, 1)
+    this.doorMat = this.neuronMaterial.clone()
+    this.windowMat = this.tint(1, 0.95, 0.72)
+    this.nucleusMat = this.tint(0.98, 0.6, 0.2)
+    this.beadMat = this.tint(1, 0.93, 0.6)
+    this.cableMat = this.tint(1, 0.96, 0.88)
+    this.pulseMat = this.tint(1, 0.75, 0.25)
     this.build()
     this.setActivity(0)
     this.createEvent("UpdateEvent").bind(() => this.tick())
@@ -86,67 +102,164 @@ export class InsideFearInterior extends BaseScriptComponent {
   /** 0 = calm (pulses stop, cool color) … 1 = firing (fast pulses, warm color). */
   setActivity(level: number): void {
     this.activity = Math.max(0, Math.min(1, level))
-    this.mat.mainPass.baseColor = vec4.lerp(this.calmColor, this.activeColor, this.activity)
+    const k = Math.max(0, Math.min(1, (this.activity - 0.3) / 0.7)), c = vec4.lerp(this.calmColor, this.activeColor, k * k * (3 - 2 * k))   // ≤0.3 stays calm blue (no muddy grey)
+    this.mat.mainPass.baseColor = c
+    this.doorMat.mainPass.baseColor = new vec4(c.x * 0.7, c.y * 0.7, c.z * 0.75, 1)
     const showPulses = this.activity > 0.05
     for (const p of this.pulses) p.so.enabled = showPulses
   }
 
   getActivity(): number { return this.activity }
 
-  /** World position of the neuron a step should be explained next to (step 1..4). */
+  /** World position of the tower crown a step should be explained next to (step 1..4). */
   focusPointWorld(step: number): vec3 {
-    const i = Math.max(0, Math.min(this.neurons.length - 1, step - 1))
-    return this.neurons[i].getTransform().getWorldPosition()
+    const i = Math.max(0, Math.min(this.crowns.length - 1, step - 1))
+    return this.sceneObject.getTransform().getWorldTransform().multiplyPoint(this.crowns[i])
   }
 
+  // Cartoon "amygdala town" (brief: towers = neurons, white segmented cables = myelinated axons,
+  // pink cobbled tissue floor, dark-red dome). Built from the two authored meshes only:
+  // stretched spheres for bodies/windows/doors/cobbles/dome, thin boxes for dendrite branches.
   private build(): void {
     const root = this.sceneObject
-    const sphereSize = this.meshSize(this.neuronMesh).x
-    const boxSize = this.meshSize(this.synapseMesh)
-    const positions: vec3[] = []
+    this.sphere = this.meshSize(this.neuronMesh).x
+    this.box = this.meshSize(this.synapseMesh)
+    const rnd = this.rng(7)
+    const fy = -this.floorDropCm
+    this.buildRoom(root, fy, rnd)
+    const bases: vec3[] = []
+    const n = InsideFearInterior.FOCUS_DIRS.length
     for (let i = 0; i < this.neuronCount; i++) {
-      let dir: vec3
-      if (i < InsideFearInterior.FOCUS_DIRS.length) {
-        dir = InsideFearInterior.FOCUS_DIRS[i].normalize()
-      } else {
-        // uniform random direction on the sphere → content in front, behind, left, right, above
-        const z = Math.random() * 2 - 1, phi = Math.random() * Math.PI * 2, r = Math.sqrt(1 - z * z)
-        dir = new vec3(r * Math.cos(phi), z * 0.6, r * Math.sin(phi))
+      let dir: vec3, radius: number, size: number
+      if (i < n) {
+        const d = InsideFearInterior.FOCUS_DIRS[i]
+        dir = new vec3(d.x, 0, d.z).normalize()
+        radius = (this.minRadiusCm + this.maxRadiusCm) * 0.55   // ~2.2 m: a whole tower fits the Specs FOV
+        size = 1.3
+      } else {   // background towers spread evenly round the user, jittered
+        const a = ((i - n) / (this.neuronCount - n)) * Math.PI * 2 + rnd() * 0.4
+        dir = new vec3(Math.sin(a), 0, -Math.cos(a))
+        radius = this.maxRadiusCm + rnd() * 80   // behind the focus towers, never between them and the user
+        size = 0.9 + rnd() * 0.4
       }
-      const radius = i < 4 ? (this.minRadiusCm + this.maxRadiusCm) * 0.4 : this.minRadiusCm + Math.random() * (this.maxRadiusCm - this.minRadiusCm)
-      const pos = dir.uniformScale(radius)
-      positions.push(pos)
-      const so = global.scene.createSceneObject("Neuron" + i)
-      so.setParent(root)
-      so.getTransform().setLocalPosition(pos)
-      const s = this.neuronSizeCm / sphereSize
-      so.getTransform().setLocalScale(new vec3(s, s, s))
-      this.addVisual(so, this.neuronMesh, this.mat)
-      this.neurons.push(so)
+      const base = dir.uniformScale(radius).add(new vec3(0, fy, 0))
+      bases.push(base)
+      this.neurons.push(this.buildTower(root, "Neuron" + i, base, size, i < n ? 3 : 2, rnd))
+      this.crowns.push(base.add(new vec3(0, 95 * size, 0)))
     }
-    // Synapses: each neuron to its 2 nearest neighbours (deduped)
+    // Myelinated axons: each tower to its 2 nearest neighbours (deduped), along the floor
     const seen = new Set<string>()
-    for (let i = 0; i < positions.length; i++) {
-      const order = positions.map((p, j) => ({j, d: p.distance(positions[i])})).filter((o) => o.j !== i).sort((x, y) => x.d - y.d)
+    for (let i = 0; i < bases.length; i++) {
+      const order = bases.map((p, j) => ({j, d: p.distance(bases[i])})).filter((o) => o.j !== i).sort((x, y) => x.d - y.d)
       for (let k = 0; k < Math.min(2, order.length); k++) {
         const j = order[k].j, key = i < j ? i + "-" + j : j + "-" + i
         if (seen.has(key)) continue
         seen.add(key)
-        this.addSynapse(root, positions[i], positions[j], boxSize)
+        this.addCable(root, bases[i].add(new vec3(0, 8, 0)), bases[j].add(new vec3(0, 8, 0)))
       }
     }
-    // One pulse per synapse, staggered
+    // One glowing bead per cable, staggered
     for (let s = 0; s < this.synapses.length; s++) {
-      const so = global.scene.createSceneObject("Pulse" + s)
-      so.setParent(root)
-      const sz = (this.neuronSizeCm * 0.3) / sphereSize
-      so.getTransform().setLocalScale(new vec3(sz, sz, sz))
-      this.addVisual(so, this.neuronMesh, this.pulseMat)
-      this.pulses.push({so, syn: s, t: Math.random()})
+      this.pulses.push({so: this.part(root, "Pulse" + s, this.neuronMesh, this.pulseMat, vec3.zero(), new vec3(7, 7, 7)), syn: s, t: rnd()})
     }
-    this.buildCue(root, sphereSize, boxSize)
-    this.buildOrgan(root, sphereSize)
-    print("[InsideFearInterior] built neurons=" + this.neurons.length + " synapses=" + this.synapses.length)
+    this.buildCue(root, this.sphere, this.box)
+    this.buildOrgan(root, this.sphere)
+    print("[InsideFearInterior] built towers=" + this.neurons.length + " cables=" + this.synapses.length)
+  }
+
+  // Pink cobbled floor disc + dark-red dome (seen from inside → two-sided). Specs' additive display
+  // makes the dark dome near-transparent on device; in preview / recordings it reads as "inside".
+  private buildRoom(root: SceneObject, fy: number, rnd: () => number): void {
+    const R = this.maxRadiusCm + 160
+    this.part(root, "Floor", this.neuronMesh, this.tint(0.85, 0.4, 0.5), new vec3(0, fy - 2, 0), new vec3(R * 2, 2, R * 2))
+    const cob = this.tint(0.96, 0.62, 0.68)
+    for (let z = -R; z < R; z += 34) {
+      for (let x = -R + ((z / 34) % 2 ? 22 : 0); x < R; x += 46) {
+        const r = Math.sqrt(x * x + z * z)
+        if (r > R - 30 || r < 50) continue   // keep the user's own spot clear
+        this.part(root, "Cobble", this.neuronMesh, cob, new vec3(x + rnd() * 8, fy, z + rnd() * 6), new vec3(38 + rnd() * 6, 3, 26), quat.angleAxis(rnd() * 0.4 - 0.2, vec3.up()))
+      }
+    }
+    const dome = this.tint(0.36, 0.08, 0.16)
+    dome.mainPass.twoSided = true
+    this.part(root, "Dome", this.neuronMesh, dome, new vec3(0, fy, 0), new vec3(R * 2, R * 1.3, R * 2))
+  }
+
+  // One neuron: capsule-ish body facing the user, round window with nucleus, door, branching
+  // dendrite antenna with bead tips. `size` 1 ≈ 70 cm body + ~60 cm crown.
+  private buildTower(root: SceneObject, name: string, base: vec3, size: number, levels: number, rnd: () => number): SceneObject {
+    const so = global.scene.createSceneObject(name)
+    so.setParent(root)
+    const t = so.getTransform()
+    t.setLocalPosition(base)
+    t.setLocalRotation(quat.lookAt(new vec3(-base.x, 0, -base.z).normalize(), vec3.up()))   // +Z → user
+    const w = this.neuronSizeCm * size, h = 80 * size
+    this.part(so, "Body", this.neuronMesh, this.mat, new vec3(0, h * 0.35, 0), new vec3(w, h, w))
+    this.part(so, "Window", this.neuronMesh, this.windowMat, new vec3(0, h * 0.55, w * 0.44), new vec3(w * 0.42, w * 0.42, 4))
+    this.part(so, "Nucleus", this.neuronMesh, this.nucleusMat, new vec3(0, h * 0.55, w * 0.5), new vec3(w * 0.2, w * 0.2, 3))
+    this.part(so, "Door", this.neuronMesh, this.doorMat, new vec3(0, h * 0.05, w * 0.46), new vec3(w * 0.38, h * 0.32, 4))
+    this.branch(so, new vec3(0, h * 0.8, 0), vec3.up(), 26 * size, 2.6 * size, levels, rnd)
+    return so
+  }
+
+  private branch(parent: SceneObject, from: vec3, dir: vec3, len: number, thick: number, depth: number, rnd: () => number): void {
+    const to = from.add(dir.uniformScale(len))
+    this.rod(parent, from, to, thick, this.mat)
+    if (depth === 0) {
+      this.part(parent, "Bead", this.neuronMesh, this.beadMat, to, new vec3(4, 4, 4))
+      return
+    }
+    const kids = depth >= 2 ? 3 : 2, phase = rnd() * Math.PI * 2
+    for (let k = 0; k < kids; k++) {
+      const phi = phase + (k / kids) * Math.PI * 2, tilt = 0.5 + rnd() * 0.3
+      const side = new vec3(Math.cos(phi), 0, Math.sin(phi))
+      const nd = dir.uniformScale(Math.cos(tilt)).add(side.uniformScale(Math.sin(tilt))).add(new vec3(0, 0.25, 0)).normalize()
+      this.branch(parent, to, nd, len * 0.72, thick * 0.7, depth - 1, rnd)
+    }
+  }
+
+  // Myelinated axon: chain of white capsules with small gaps (nodes of Ranvier); pulses ride it.
+  private addCable(root: SceneObject, a: vec3, b: vec3): void {
+    const len = b.distance(a), seg = 16, n = Math.max(1, Math.floor(len / seg))
+    const rot = quat.rotationFromTo(vec3.forward(), b.sub(a).normalize())
+    for (let k = 0; k < n; k++) {
+      this.part(root, "Myelin", this.neuronMesh, this.cableMat, vec3.lerp(a, b, (k + 0.5) / n), new vec3(5, 5, (len / n) * 0.82), rot)
+    }
+    this.synapses.push({a, b, len})
+  }
+
+  private rod(parent: SceneObject, a: vec3, b: vec3, thick: number, mat: Material): void {
+    const so = global.scene.createSceneObject("Branch")
+    so.setParent(parent)
+    const t = so.getTransform()
+    t.setLocalPosition(a.add(b).uniformScale(0.5))
+    t.setLocalRotation(quat.rotationFromTo(vec3.forward(), b.sub(a).normalize()))
+    t.setLocalScale(new vec3(thick / this.box.x, thick / this.box.y, a.distance(b) / this.box.z))
+    this.addVisual(so, this.synapseMesh, mat)
+  }
+
+  /** Sphere-mesh part sized in cm (x, y, z diameters). */
+  private part(parent: SceneObject, name: string, mesh: RenderMesh, mat: Material, pos: vec3, sizeCm: vec3, rot?: quat): SceneObject {
+    const so = global.scene.createSceneObject(name)
+    so.setParent(parent)
+    const t = so.getTransform()
+    t.setLocalPosition(pos)
+    if (rot) t.setLocalRotation(rot)
+    t.setLocalScale(sizeCm.uniformScale(1 / this.sphere))
+    this.addVisual(so, mesh, mat)
+    return so
+  }
+
+  private tint(r: number, g: number, b: number): Material {
+    const m = this.neuronMaterial.clone()
+    m.mainPass.baseColor = new vec4(r, g, b, 1)
+    return m
+  }
+
+  /** Deterministic RNG so the town looks the same every run (screenshots, LEAF). */
+  private rng(seed: number): () => number {
+    let x = seed
+    return () => ((x = (x * 16807) % 2147483647) - 1) / 2147483646
   }
 
   // ── Out-of-view cue: a short white rod + tip, 70 cm ahead of the user, pointing at the target ──
@@ -209,19 +322,6 @@ export class InsideFearInterior extends BaseScriptComponent {
   }
   isOrganVisible(): boolean { return this.organ.enabled }
 
-  private addSynapse(root: SceneObject, a: vec3, b: vec3, boxSize: vec3): void {
-    const dir = b.sub(a), len = dir.length
-    const so = global.scene.createSceneObject("Synapse")
-    so.setParent(root)
-    const t = so.getTransform()
-    t.setLocalPosition(a.add(b).uniformScale(0.5))
-    t.setLocalRotation(quat.lookAt(dir.normalize(), vec3.up()))
-    const thick = 1.2
-    t.setLocalScale(new vec3(thick / boxSize.x, thick / boxSize.y, len / boxSize.z))
-    this.addVisual(so, this.synapseMesh, this.mat)
-    this.synapses.push({a, b, len})
-  }
-
   private addVisual(so: SceneObject, mesh: RenderMesh, mat: Material): void {
     const rmv = so.createComponent("Component.RenderMeshVisual") as RenderMeshVisual
     rmv.mesh = mesh
@@ -237,7 +337,7 @@ export class InsideFearInterior extends BaseScriptComponent {
     const dt = getDeltaTime()
     this.time += dt
     if (this.organ.enabled) {   // heartbeat ~1.5 Hz
-      const s = (10 / this.meshSize(this.neuronMesh).x) * (1 + 0.25 * Math.max(0, Math.sin(this.time * 9.4)))
+      const s = (10 / this.sphere) * (1 + 0.25 * Math.max(0, Math.sin(this.time * 9.4)))
       this.organ.getTransform().setLocalScale(new vec3(s, s, s))
     }
     if (this.cueRod.enabled) {  // gentle bob so the arrow catches the eye
@@ -256,10 +356,9 @@ export class InsideFearInterior extends BaseScriptComponent {
       }
       p.so.getTransform().setLocalPosition(vec3.lerp(syn.a, syn.b, p.t))
     }
-    // gentle breathing on neurons, stronger when firing
-    const base = this.neuronSizeCm / this.meshSize(this.neuronMesh).x
+    // gentle breathing on towers, stronger when firing
     for (let i = 0; i < this.neurons.length; i++) {
-      const s = base * (1 + 0.08 * this.activity * Math.sin(this.time * 4 + i))
+      const s = 1 + 0.05 * this.activity * Math.sin(this.time * 4 + i)
       this.neurons[i].getTransform().setLocalScale(new vec3(s, s, s))
     }
   }

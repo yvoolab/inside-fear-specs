@@ -28,7 +28,7 @@ export class Criterion2EnterScenario extends Scenario {
     const interior = findSceneObjectByName("Interior")
     expect(interior.enabled).toBe(true)
     const neurons = interior.children.filter((c) => c.name.indexOf("Neuron") === 0)
-    const synapses = interior.children.filter((c) => c.name === "Synapse")
+    const synapses = interior.children.filter((c) => c.name === "Myelin")   // myelinated cable segments
     expect(neurons.length).toBeGreaterThan(3)
     expect(synapses.length).toBeGreaterThan(3)
 
