@@ -63,9 +63,9 @@ export class InsideFearMain extends BaseScriptComponent {
   @ui.separator
   @ui.label('<span style="color: #60A5FA;">Settings</span>')
   @ui.group_start("Settings")
-  @input('vec4', '{1,0.45,0.1,1}')
+  @input('vec4', '{1,0.12,0.1,1}')
   @widget(new ColorWidget())
-  @hint("Amygdala color while fear is active (warm, bright — additive display)")
+  @hint("Amygdala color while fear is active (alarm red; the resting amygdala is orange)")
   glowColor: vec4
   @input
   @hint("Seconds for the amygdala to grow around the user / shrink back (brief: 1–2 s)")

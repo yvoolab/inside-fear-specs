@@ -453,7 +453,7 @@
       nav: !<MappingBased.AssignableType_4> b9bfb3e6-dbab-44cd-9fc8-eb172c1cee8d
       stepCard: !<MappingBased.AssignableType_5> 7d5df930-e012-4776-bb87-41ad2db9e5ac
       neuriCard: !<MappingBased.AssignableType_6> 63db5cc0-f72b-400c-8d03-31df34f85191
-      glowColor: !<Vec4> {x: "1,000000", y: "0,450000", z: "0,100000", w: "1,000000"}
+      glowColor: !<Vec4> {x: "1,000000", y: "0,120000", z: "0,100000", w: "1,000000"}
       growDurationSec: !<float> "1,000000"
       envelopeScale: !<float> "30,000000"
       stepTexts: !<string[]>
