@@ -1,0 +1,89 @@
+- !<AssetImportMetadata/ae3ac735-bc9a-40cc-98df-b96455921695>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> ca010fd8-f636-4d54-b879-c0658e6ada32
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> ca010fd8-f636-4d54-b879-c0658e6ada32
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 7142617b-3053-4498-b5ae-df30ae9c81f9
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/7142617b-3053-4498-b5ae-df30ae9c81f9>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: dcb11cfa-4ce5-44f3-8d3f-2239829e6354
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    amygdala: false
+    brain: false
+    cameraObject: false
+    enterButton: false
+    envelopeScale: false
+    glowColor: false
+    growDurationSec: false
+    interior: false
+    nav: false
+    startButton: false
+    stepCard: false
+    stepTexts: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - cameraObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      brain: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      amygdala: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      interior: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      startButton: !<MappingBased.AssignableType_2> 00000000-0000-0000-0000-000000000000
+      enterButton: !<MappingBased.AssignableType_3> 00000000-0000-0000-0000-000000000000
+      nav: !<MappingBased.AssignableType_4> 00000000-0000-0000-0000-000000000000
+      stepCard: !<MappingBased.AssignableType_5> 00000000-0000-0000-0000-000000000000
+      glowColor: !<Vec4> {x: "1,000000", y: "0,000000", z: "0,000000", w: "1,000000"}
+      growDurationSec: !<float> "1,000000"
+      envelopeScale: !<float> "30,000000"
+      stepTexts: !<string[]>
+        []
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">InsideFearMain – state machine for the Inside Fear tour</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">References</span>"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input SceneObject cameraObject {"hint":"Camera Object — the interior is centered on it when entering"}'
+    - '// @input SceneObject brain {"hint":"Translucent 1 m brain sphere"}'
+    - '// @input SceneObject amygdala {"hint":"Amygdala lump inside the brain; glows and grows to envelop the user"}'
+    - '// @input AssignableType_1 interior {"hint":"Interior controller (neurons / synapses)"}'
+    - '// @input AssignableType_2 startButton {"hint":"Start button UI"}'
+    - '// @input AssignableType_3 enterButton {"hint":"Enter button UI (appears next to the lit amygdala)"}'
+    - '// @input AssignableType_4 nav {"hint":"Next / Exit panel shown inside"}'
+    - '// @input AssignableType_5 stepCard {"hint":"Narration text card"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input vec4 glowColor = "{1,0.45,0.1,1}" {"hint":"Amygdala color while fear is active (warm, bright — additive display)", "widget":"color"}'
+    - '// @input float growDurationSec = 1.5 {"hint":"Seconds for the amygdala to grow around the user / shrink back (brief: 1–2 s)", "widget":"slider", "min":0.5, "max":4, "step":0.1}'
+    - '// @input float envelopeScale = 30 {"hint":"Scale multiplier of the amygdala when it envelops the user (14 cm × 30 ≈ 4 m)", "widget":"slider", "min":10, "max":60, "step":1}'
+    - "// @input string[] stepTexts = {} {\"hint\":\"Optional narration override, one entry per step as 'Title|Body'. Leave empty for the textbook defaults.\"}"
+    - '// @ui {"widget":"group_end"}'

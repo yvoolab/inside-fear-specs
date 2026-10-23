@@ -1,0 +1,79 @@
+- !<AssetImportMetadata/27f81ed4-d209-4b46-a344-bfef6952c3d4>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 0edf3daf-9667-4429-b361-ef01983eb3d1
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 0edf3daf-9667-4429-b361-ef01983eb3d1
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 2e75cce5-1c34-4b94-8052-b3d6658ce203
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/2e75cce5-1c34-4b94-8052-b3d6658ce203>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 53a383e9-b125-4359-af37-5284cf458ed3
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    activeColor: false
+    calmColor: false
+    maxRadiusCm: false
+    minRadiusCm: false
+    neuronCount: false
+    neuronMaterial: false
+    neuronMesh: false
+    neuronSizeCm: false
+    synapseMesh: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - neuronMesh: !<reference.RenderMesh> 00000000-0000-0000-0000-000000000000
+      synapseMesh: !<reference.RenderMesh> 00000000-0000-0000-0000-000000000000
+      neuronMaterial: !<reference.Material> 00000000-0000-0000-0000-000000000000
+      neuronCount: !<float> "18,000000"
+      neuronSizeCm: !<float> "14,000000"
+      minRadiusCm: !<float> "120,000000"
+      maxRadiusCm: !<float> "280,000000"
+      calmColor: !<Vec4> {x: "0,000000", y: "0,000000", z: "1,000000", w: "1,000000"}
+      activeColor: !<Vec4> {x: "1,000000", y: "0,000000", z: "0,000000", w: "1,000000"}
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">InsideFearInterior – neurons + synapses around the user</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">References</span>"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input Asset.RenderMesh neuronMesh {"hint":"Sphere mesh used for neuron bodies and pulses"}'
+    - '// @input Asset.RenderMesh synapseMesh {"hint":"Box mesh stretched into thin synapse rods"}'
+    - '// @input Asset.Material neuronMaterial {"hint":"Unlit material cloned for neurons, synapses and pulses"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float neuronCount = 18 {"hint":"How many neurons surround the user (first 4 are the per-step focus points)", "widget":"slider", "min":6, "max":40, "step":1}'
+    - '// @input float neuronSizeCm = 14 {"hint":"Neuron body diameter in cm", "widget":"slider", "min":4, "max":40, "step":1}'
+    - '// @input float minRadiusCm = 120 {"hint":"Nearest / farthest neuron distance from the user, cm (brief: 1–3 m)", "widget":"slider", "min":60, "max":400, "step":10}'
+    - '// @input float maxRadiusCm = 280 {"hint":"Farthest neuron distance from the user, cm", "widget":"slider", "min":100, "max":500, "step":10}'
+    - '// @input vec4 calmColor = "{0.55,0.75,1,1}" {"hint":"Neuron color when calm", "widget":"color"}'
+    - '// @input vec4 activeColor = "{1,0.55,0.2,1}" {"hint":"Neuron color when firing", "widget":"color"}'
+    - '// @ui {"widget":"group_end"}'

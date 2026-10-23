@@ -1,0 +1,63 @@
+- !<AssetImportMetadata/b3c9c5ae-8321-49fe-84c2-7a7440e72f85>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 9aa75cf7-f522-42fa-b5c0-1cf0033ca9f8
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 9aa75cf7-f522-42fa-b5c0-1cf0033ca9f8
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 3ac85581-6b3c-4acd-9159-2c9ac6fcd358
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/3ac85581-6b3c-4acd-9159-2c9ac6fcd358>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: 315828d3-4efe-4d7f-b921-daa574b21502
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    buttonWidthCm: false
+    exitLabel: false
+    followDistanceCm: false
+    nextLabel: false
+    startVisible: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - nextLabel: Next
+      exitLabel: 退 / Exit
+      buttonWidthCm: !<float> "15,000000"
+      followDistanceCm: !<float> "60,000000"
+      startVisible: false
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">InsideFearNavUI – Next / Exit buttons that follow the user</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input string nextLabel = "Next" {"hint":"Label of the advance button"}'
+    - '// @input string exitLabel = "退 / Exit" {"hint":"Label of the leave button (brief: 退 / Exit)"}'
+    - '// @input float buttonWidthCm = 15 {"hint":"Width of each button in cm (brief: about 15 cm)", "widget":"slider", "min":8, "max":25, "step":1}'
+    - '// @input float followDistanceCm = 60 {"hint":"Distance in cm at which the panel re-centers in front of the user", "widget":"slider", "min":20, "max":200, "step":1}'
+    - '// @input bool startVisible {"hint":"Visible when the Lens launches (normally off — shown by Main when inside)"}'
+    - '// @ui {"widget":"group_end"}'
