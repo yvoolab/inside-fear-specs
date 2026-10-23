@@ -5,9 +5,9 @@
     - !<own> 0005641c-028d-459a-0000-000000014b4d
     - !<own> f5d74682-203a-4970-81ea-9fa7b88c96bb
     - !<own> 4df89040-e90f-4a2c-8b4a-cebb8a3838ed
-    - !<own> 4865d92b-9210-41ff-8863-583e633392bc
     - !<own> b75fe70c-8160-4570-a24f-e57677116b0a
     - !<own> 82a79611-ae23-4764-b176-34eae583e9a8
+    - !<own> bd31a327-047c-448a-8db3-461af74f34e4
   layers: !<Layers/267ee9a7-aff2-4f9d-9a49-f71214747d03>
     userLayers:
       - id: 1
@@ -1016,21 +1016,6 @@
     - !<own> 8fe2a532-9bf3-4cde-b598-04ce5470718d
   Components:
     []
-- !<SceneObject/4865d92b-9210-41ff-8863-583e633392bc>
-  PrefabRemaps:
-    []
-  Name: AiPreviewAgent Handler
-  Enabled: true
-  Layers: 1
-  LocalTransform: !<TransformEntity>
-    Position: {x: "0,000000", y: "0,000000", z: "0,000000"}
-    Rotation: {x: "0,000000", y: "0,000000", z: "0,000000"}
-    Scale: {x: "1,000000", y: "1,000000", z: "1,000000"}
-    HasSegmentScaleCompensation: false
-  Children:
-    []
-  Components:
-    - !<own> 5b5a6381-4f9e-4bdb-bb68-ca930bb6d4ec
 - !<SceneObject/4c195c04-c397-454e-bd08-3485f37d84fe>
   PrefabRemaps:
     []
@@ -1138,22 +1123,6 @@
     - !<own> bf2095b6-c6f8-48c8-b840-e0a6cec0dc99
   Components:
     []
-- !<ScriptComponent/5b5a6381-4f9e-4bdb-bb68-ca930bb6d4ec>
-  PrefabRemaps:
-    []
-  Name: AgentInspectScript
-  Enabled: true
-  ScriptAsset: !<reference> 0b25079c-f5bf-4c6d-96c4-f43b89dfa213
-  ScriptInputsDefault:
-    {}
-  ScriptTypesDefault:
-    {}
-  ScriptInputs:
-    "":
-      {}
-  ScriptTypes:
-    "":
-      {}
 - !<ScriptComponent/5f153ad7-2baa-4fd9-a298-0dcfad86da3b>
   PrefabRemaps:
     []
@@ -1858,6 +1827,38 @@
     []
   Components:
     - !<own> b9bfb3e6-dbab-44cd-9fc8-eb172c1cee8d
+- !<ScriptComponent/971d1cdb-d46b-433b-8109-737b7a2a6c5f>
+  PrefabRemaps:
+    []
+  Name: AgentInspectScript
+  Enabled: true
+  ScriptAsset: !<reference> 0b25079c-f5bf-4c6d-96c4-f43b89dfa213
+  ScriptInputsDefault:
+    {}
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      {}
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/9797daa8-6209-47f8-9c54-25cddeefa5e6>
+  PrefabRemaps:
+    []
+  Name: AgentInteractScript
+  Enabled: true
+  ScriptAsset: !<reference> 29091811-e792-46be-bfa4-28ddec5f11be
+  ScriptInputsDefault:
+    {}
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      {}
+  ScriptTypes:
+    "":
+      {}
 - !<SceneObject/988c408a-99dc-47e6-b7c4-efbf4bf8dc3c>
   PrefabRemaps:
     []
@@ -1898,8 +1899,7 @@
   Enabled: true
   ScriptAsset: !<reference> 0edf3daf-9667-4429-b361-ef01983eb3d1
   ScriptInputsDefault:
-    neuronCount: true
-    neuronSizeCm: true
+    floorDropCm: true
     minRadiusCm: true
     maxRadiusCm: true
   ScriptTypesDefault:
@@ -1909,8 +1909,9 @@
       neuronMesh: !<reference.RenderMesh> 574c1d77-f720-4e5e-949f-fce00cc1c2ae
       synapseMesh: !<reference.RenderMesh> fe52ea45-27cb-42e2-beb2-19e3ed233e07
       neuronMaterial: !<reference.Material> cece3ebf-e46c-4638-b5bb-f40a248786eb
-      neuronCount: !<float> "18,000000"
-      neuronSizeCm: !<float> "14,000000"
+      neuronCount: !<float> "14,000000"
+      neuronSizeCm: !<float> "36,000000"
+      floorDropCm: !<float> "150,000000"
       minRadiusCm: !<float> "120,000000"
       maxRadiusCm: !<float> "280,000000"
       calmColor: !<Vec4> {x: "0,550000", y: "0,750000", z: "1,000000", w: "1,000000"}
@@ -2322,6 +2323,22 @@
     - !<own> fe93d992-1114-4f1f-8bef-0a0bbd75747d
   Components:
     []
+- !<SceneObject/bd31a327-047c-448a-8db3-461af74f34e4>
+  PrefabRemaps:
+    []
+  Name: AiPreviewAgent Handler
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: "0,000000", y: "0,000000", z: "0,000000"}
+    Rotation: {x: "0,000000", y: "0,000000", z: "0,000000"}
+    Scale: {x: "1,000000", y: "1,000000", z: "1,000000"}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 971d1cdb-d46b-433b-8109-737b7a2a6c5f
+    - !<own> 9797daa8-6209-47f8-9c54-25cddeefa5e6
 - !<SceneObject/bf2095b6-c6f8-48c8-b840-e0a6cec0dc99>
   PrefabRemaps:
     []
