@@ -80,7 +80,7 @@ export class InsideFearInterior extends BaseScriptComponent {
   private pulses: {so: SceneObject; syn: number; t: number}[] = []
   private crowns: vec3[] = []
   private thalamusTop = vec3.zero()
-  private streams: {a: vec3; b: vec3; beads: SceneObject[]}[] = []
+  private streams: {a: vec3; b: vec3; arc: number; beads: SceneObject[]}[] = []
   private sphere = 1
   private box = new vec3(1, 1, 1)
   private mat!: Material
@@ -178,8 +178,9 @@ export class InsideFearInterior extends BaseScriptComponent {
     this.myelin(root, thalamusSide, c[0])
     this.myelin(root, c[0], c[1])
     this.addStream(root, thalamusSide, c[0], this.pulseMat)
-    this.addStream(root, c[0], c[1], this.beadMat)
-    this.addStream(root, this.crowns[3], this.crowns[0], this.tint(0.45, 0.8, 1), 20)
+    // Glutamate hops over the crowns (arc) in lime — beadMat would vanish among the yellow dendrite tips
+    this.addStream(root, c[0], c[1], this.tint(0.55, 1, 0.3), 12, 90)
+    this.addStream(root, this.crowns[3], this.crowns[0], this.tint(0.45, 0.8, 1), 20, 90)   // arc clears the thalamus box
     // Myelinated axons: each tower to its 2 nearest neighbours (deduped), along the floor
     const seen = new Set<string>()
     for (let i = 0; i < bases.length; i++) {
@@ -268,10 +269,10 @@ export class InsideFearInterior extends BaseScriptComponent {
   }
 
   /** Three beads that run a → b only during their step (see stage()). */
-  private addStream(root: SceneObject, a: vec3, b: vec3, mat: Material, sizeCm = 9): void {
+  private addStream(root: SceneObject, a: vec3, b: vec3, mat: Material, sizeCm = 9, arc = 0): void {
     const beads = [0, 1, 2].map((k) => this.part(root, "StreamBead" + k, this.neuronMesh, mat, a, vec3.one().uniformScale(sizeCm)))   // no ink hull: it would stay behind when hidden
     beads.forEach((o) => (o.enabled = false))
-    this.streams.push({a, b, beads})
+    this.streams.push({a, b, arc, beads})
   }
 
   // Thalamus: purple relay box on a stand with four lit windows and a sign. Returns where its cable leaves.
@@ -432,7 +433,10 @@ export class InsideFearInterior extends BaseScriptComponent {
     }
     for (const st of this.streams) {
       if (!st.beads[0].enabled) continue
-      st.beads.forEach((b, k) => b.getTransform().setLocalPosition(vec3.lerp(st.a, st.b, (this.time * 0.6 + k / 3) % 1)))
+      st.beads.forEach((b, k) => {
+        const f = (this.time * 0.6 + k / 3) % 1
+        b.getTransform().setLocalPosition(vec3.lerp(st.a, st.b, f).add(new vec3(0, st.arc * Math.sin(Math.PI * f), 0)))
+      })
     }
     if (this.activity <= 0.05) return
     for (const p of this.pulses) {
