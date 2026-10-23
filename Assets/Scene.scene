@@ -452,6 +452,7 @@
       enterButton: !<MappingBased.AssignableType_3> fd963283-7873-42b4-a04a-af71930c4227
       nav: !<MappingBased.AssignableType_4> b9bfb3e6-dbab-44cd-9fc8-eb172c1cee8d
       stepCard: !<MappingBased.AssignableType_5> 7d5df930-e012-4776-bb87-41ad2db9e5ac
+      neuriCard: !<MappingBased.AssignableType_6> 63db5cc0-f72b-400c-8d03-31df34f85191
       glowColor: !<Vec4> {x: "1,000000", y: "0,450000", z: "0,100000", w: "1,000000"}
       growDurationSec: !<float> "1,000000"
       envelopeScale: !<float> "30,000000"
@@ -1078,6 +1079,21 @@
     []
   Components:
     - !<own> 6fd7d868-41ed-4524-92d0-99b112d619ab
+- !<SceneObject/51cac857-0e34-456d-b946-e1babd364c2f>
+  PrefabRemaps:
+    []
+  Name: NeuriCard
+  Enabled: true
+  Layers: 1
+  LocalTransform: !<TransformEntity>
+    Position: {x: "0,000000", y: "0,000000", z: "0,000000"}
+    Rotation: {x: "0,000000", y: "0,000000", z: "0,000000"}
+    Scale: {x: "1,000000", y: "1,000000", z: "1,000000"}
+    HasSegmentScaleCompensation: false
+  Children:
+    []
+  Components:
+    - !<own> 63db5cc0-f72b-400c-8d03-31df34f85191
 - !<SceneObject/52ecefe4-5642-445a-ad16-52ce818076bc>
   PrefabRemaps:
     []
@@ -1184,6 +1200,27 @@
       initializePositionAndRotationFilter: true
       _touchpadScrollSpeed: !<float> "250,000000"
       touchpadDragThreshold: "0,050000"
+  ScriptTypes:
+    "":
+      {}
+- !<ScriptComponent/63db5cc0-f72b-400c-8d03-31df34f85191>
+  PrefabRemaps:
+    []
+  Name: InsideFearNeuriCard
+  Enabled: true
+  ScriptAsset: !<reference> 7bd73e6f-1693-439c-b6f3-4562edc89c4a
+  ScriptInputsDefault:
+    distanceCm: true
+  ScriptTypesDefault:
+    {}
+  ScriptInputs:
+    "":
+      cameraObject: !<reference.SceneObject> 00000000-0000-0065-0000-000000000064
+      caption: !<reference.SceneObject> 699c14aa-5810-442b-b017-40618a2585f0
+      widthCm: !<float> "18,000000"
+      distanceCm: !<float> "100,000000"
+      leftDeg: !<float> "9,000000"
+      dropCm: !<float> "-6,000000"
   ScriptTypes:
     "":
       {}
@@ -1561,14 +1598,13 @@
   Enabled: true
   ScriptAsset: !<reference> 2014c5de-539a-479a-bcb1-31e704518ba7
   ScriptInputsDefault:
-    widthCm: true
     heightCm: true
     titleColor: true
   ScriptTypesDefault:
     {}
   ScriptInputs:
     "":
-      widthCm: !<float> "44,000000"
+      widthCm: !<float> "30,000000"
       heightCm: !<float> "14,000000"
       titleColor: !<Vec4> {x: "1,000000", y: "1,000000", z: "1,000000", w: "1,000000"}
       bodyColor: !<Vec4> {x: "1,000000", y: "1,000000", z: "1,000000", w: "0,850000"}
@@ -1890,6 +1926,7 @@
     - !<own> 036ca103-7a22-4bae-bee3-c56e176f5459
     - !<own> 94c86c69-430c-4b46-9c76-28e29217d12a
     - !<own> 699c14aa-5810-442b-b017-40618a2585f0
+    - !<own> 51cac857-0e34-456d-b946-e1babd364c2f
   Components:
     []
 - !<ScriptComponent/9c03d685-cb91-45bd-842d-840f327036ec>
@@ -2249,7 +2286,6 @@
     nextLabel: true
     exitLabel: true
     buttonWidthCm: true
-    followDistanceCm: true
     startVisible: true
   ScriptTypesDefault:
     {}
@@ -2258,7 +2294,7 @@
       nextLabel: Next
       exitLabel: 退 / Exit
       buttonWidthCm: !<float> "15,000000"
-      followDistanceCm: !<float> "60,000000"
+      followDistanceCm: !<float> "80,000000"
       startVisible: false
   ScriptTypes:
     "":

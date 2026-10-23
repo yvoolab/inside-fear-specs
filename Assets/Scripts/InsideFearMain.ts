@@ -10,6 +10,7 @@ import {InsideFearBigButtonUI} from "./InsideFearBigButtonUI"
 import {InsideFearNavUI} from "./InsideFearNavUI"
 import {InsideFearStepCardUI} from "./InsideFearStepCardUI"
 import {InsideFearInterior} from "./InsideFearInterior"
+import {InsideFearNeuriCard} from "./InsideFearNeuriCard"
 
 const SFX_BLAME = requireAsset("../GeneratedSFX/BlameVoice.wav") as AudioTrackAsset
 const SFX_CLICK = requireAsset("../GeneratedSFX/Click.wav") as AudioTrackAsset
@@ -44,6 +45,7 @@ export class InsideFearMain extends BaseScriptComponent {
   @input @hint("Enter button UI (appears next to the lit amygdala)") enterButton!: InsideFearBigButtonUI
   @input @hint("Next / Exit panel shown inside") nav!: InsideFearNavUI
   @input @hint("Narration text card") stepCard!: InsideFearStepCardUI
+  @input @hint("Neuri's floating storyboard card (the caption sits under it)") neuriCard!: InsideFearNeuriCard
   @ui.group_end
 
   @ui.separator
@@ -81,7 +83,7 @@ export class InsideFearMain extends BaseScriptComponent {
   private glowTime = 0
 
   onAwake() {
-    if (!this.cameraObject || !this.brain || !this.amygdala || !this.interior || !this.startButton || !this.enterButton || !this.nav || !this.stepCard) {
+    if (!this.cameraObject || !this.brain || !this.amygdala || !this.interior || !this.startButton || !this.enterButton || !this.nav || !this.stepCard || !this.neuriCard) {
       print("[InsideFear] required @input not wired — check bootstrap Phase B")
       return
     }
@@ -150,7 +152,7 @@ export class InsideFearMain extends BaseScriptComponent {
     this.interior.setActivity(s.activity)
     if (this.step === 4) this.setLit(false)                 // fear fades → amygdala back to normal
     const focus = this.interior.focusPointWorld(this.step)
-    this.placeCardNear(focus)
+    this.neuriCard.showStep(this.step)
     this.stepCard.showStep(s.title, s.body)
     this.play(SFX_STEPS[this.step - 1], focus)          // narration cue comes from the event (spatial)
     this.cueIfOutOfView(focus)
@@ -163,6 +165,7 @@ export class InsideFearMain extends BaseScriptComponent {
     this.play(SFX_CLICK)
     this.nav.setVisible(false)
     this.stepCard.hide()
+    this.neuriCard.hide()
     this.interior.sceneObject.enabled = false
     this.setLit(false)
     this.amygdala.enabled = true
@@ -184,6 +187,7 @@ export class InsideFearMain extends BaseScriptComponent {
     this.enterButton.setVisible(false)
     this.nav.setVisible(false)
     this.stepCard.hide()
+    this.neuriCard.hide()
     this.setState("outside")
   }
 
@@ -204,15 +208,6 @@ export class InsideFearMain extends BaseScriptComponent {
     if (!o) return d
     const i = o.indexOf("|")
     return {title: i >= 0 ? o.substring(0, i) : d.title, body: i >= 0 ? o.substring(i + 1) : o, activity: d.activity}
-  }
-
-  /** Card sits 100 cm from the user, offset toward the focus neuron (horizontal offset halved so a
-   *  40 cm card stays inside the ~19° half-width view), a little below eye level and above the nav. */
-  private placeCardNear(focus: vec3): void {
-    const cam = this.cameraObject.getTransform().getWorldPosition()
-    const d = focus.sub(cam)
-    const dir = new vec3(d.x * 0.4, 0, d.z).normalize()
-    this.stepCard.sceneObject.getTransform().setWorldPosition(cam.add(dir.uniformScale(100)).add(new vec3(0, -5, 0)))
   }
 
   /** Brief: if the event is out of view, a small arrow (plus the spatial sound) points to it. */

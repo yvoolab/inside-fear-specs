@@ -1,0 +1,67 @@
+- !<AssetImportMetadata/8bd3d229-518d-4bba-a14a-eb4258b910af>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 7bd73e6f-1693-439c-b6f3-4562edc89c4a
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 7bd73e6f-1693-439c-b6f3-4562edc89c4a
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> f14fcd42-b955-46fb-b496-9aec8d298819
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/f14fcd42-b955-46fb-b496-9aec8d298819>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  VersionPrerelease: ""
+  UpdateOrder: 0
+  ComponentUid: dca4f3b9-43b7-4fa2-95d3-76e0325dc435
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    cameraObject: false
+    caption: false
+    distanceCm: false
+    dropCm: false
+    leftDeg: false
+    widthCm: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - cameraObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      caption: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      widthCm: !<float> "22,000000"
+      distanceCm: !<float> "100,000000"
+      leftDeg: !<float> "24,000000"
+      dropCm: !<float> "2,000000"
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">InsideFearNeuriCard – Neuri floating card + caption placement</span>"}'
+    - '// @ui {"widget":"separator"}'
+    - '// @ui {"widget":"group_start", "label":"References"}'
+    - '// @input SceneObject cameraObject {"hint":"Camera Object (the card follows its yaw)"}'
+    - '// @input SceneObject caption {"hint":"Narration text card; kept just under Neuri"}'
+    - '// @ui {"widget":"group_end"}'
+    - '// @ui {"widget":"group_start", "label":"Settings"}'
+    - '// @input float widthCm = 22 {"hint":"Card width in cm (art is 8:9)", "widget":"slider", "min":12, "max":40, "step":1}'
+    - '// @input float distanceCm = 100 {"hint":"Distance from the user, cm", "widget":"slider", "min":60, "max":160, "step":5}'
+    - '// @input float leftDeg = 24 {"hint":"Yaw to the left of where the user looks, degrees", "widget":"slider", "min":0, "max":40, "step":1}'
+    - '// @input float dropCm = 2 {"hint":"Card center below eye level, cm", "widget":"slider", "min":-20, "max":30, "step":1}'
+    - '// @ui {"widget":"group_end"}'
