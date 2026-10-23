@@ -66,6 +66,10 @@ export class InsideFearMain extends BaseScriptComponent {
   @input
   @hint("Optional narration override, one entry per step as 'Title|Body'. Leave empty for the textbook defaults.")
   stepTexts: string[] = []
+  @input
+  @hint("Master volume of every cue; 0 = silent (dev runs on a shared machine — set back to 1 before recording)")
+  @widget(new SliderWidget(0, 1, 0.05))
+  volume: number = 1
   @ui.group_end
 
   // ── Public, readable state (LEAF asserts on these) ──
@@ -240,6 +244,7 @@ export class InsideFearMain extends BaseScriptComponent {
       this.audioByTrack.set(track, a)
     }
     if (at) this.emitter().getTransform().setWorldPosition(at)
+    a.volume = this.volume
     a.play(1)
   }
 

@@ -41,6 +41,7 @@
     startButton: false
     stepCard: false
     stepTexts: false
+    volume: false
   ScriptTypesHidden:
     {}
   ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
@@ -64,6 +65,7 @@
       envelopeScale: !<float> "30,000000"
       stepTexts: !<string[]>
         []
+      volume: !<float> "1,000000"
   ScriptTypes:
     -
       {}
@@ -89,4 +91,5 @@
     - '// @input float growDurationSec = 1.5 {"hint":"Seconds for the amygdala to grow around the user / shrink back (brief: 1–2 s)", "widget":"slider", "min":0.5, "max":4, "step":0.1}'
     - '// @input float envelopeScale = 30 {"hint":"Scale multiplier of the amygdala when it envelops the user (14 cm × 30 ≈ 4 m)", "widget":"slider", "min":10, "max":60, "step":1}'
     - "// @input string[] stepTexts = {} {\"hint\":\"Optional narration override, one entry per step as 'Title|Body'. Leave empty for the textbook defaults.\"}"
+    - '// @input float volume = 1 {"hint":"Master volume of every cue; 0 = silent (dev runs on a shared machine — set back to 1 before recording)", "widget":"slider", "min":0, "max":1, "step":0.05}'
     - '// @ui {"widget":"group_end"}'
