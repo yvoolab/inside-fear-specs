@@ -400,7 +400,7 @@ export class InsideFearInterior extends BaseScriptComponent {
     if (on) {
       const p = this.focusPointWorld(4)
       this.organ.getTransform().setWorldPosition(p.add(new vec3(0, 72, 0)))   // lamp just above the tree top
-      this.organLabel.getTransform().setWorldPosition(p.add(new vec3(0, 8, 0)))
+      this.organLabel.getTransform().setWorldPosition(p.add(new vec3(0, 125, 0)))   // above the lamp: lower, the step card hides it
     }
     this.organ.enabled = on
     this.organLabel.enabled = on
