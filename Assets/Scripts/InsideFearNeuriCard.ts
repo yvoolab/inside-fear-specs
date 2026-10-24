@@ -65,12 +65,15 @@ export class InsideFearNeuriCard extends BaseScriptComponent {
     this.sceneObject.enabled = false
   }
 
-  private target(): vec3 {
+  private target(): vec3 { return this.ahead(this.leftDeg).add(new vec3(0, -this.dropCm, 0)) }
+
+  /** Point distanceCm in front of the user at eye height, yawed left by yawDeg (+ = left). */
+  private ahead(yawDeg: number): vec3 {
     const cam = this.cameraObject.getTransform()
     const look = cam.back
     const flat = new vec3(look.x, 0, look.z).normalize()
-    const dir = quat.angleAxis(this.leftDeg * Math.PI / 180, vec3.up()).multiplyVec3(flat)   // +yaw = left
-    return cam.getWorldPosition().add(dir.uniformScale(this.distanceCm)).add(new vec3(0, -this.dropCm, 0))
+    const dir = quat.angleAxis(yawDeg * Math.PI / 180, vec3.up()).multiplyVec3(flat)
+    return cam.getWorldPosition().add(dir.uniformScale(this.distanceCm))
   }
 
   // Lazy follow: stay put until the card drifts > 15° from its slot, then glide back (~0.5 s).
@@ -87,6 +90,7 @@ export class InsideFearNeuriCard extends BaseScriptComponent {
       if (off < 2 * Math.PI / 180) this.moving = false
     }
     const h = this.widthCm * 9 / 8
-    this.caption.getTransform().setWorldPosition(t.getWorldPosition().add(new vec3(0, -h / 2 - 9, 0)))
+    // Subtitle band: centered, in the empty strip above Neuri's card (Del 2026-10-24: text like subtitles, over nothing)
+    this.caption.getTransform().setWorldPosition(this.ahead(0).add(new vec3(0, -this.dropCm + h / 2 + 7.5, 0)))
   }
 }

@@ -1,10 +1,9 @@
 // InsideFearStepCardUI — the one-at-a-time narration text card (light text on a translucent plate).
-// Owns: the BackPlate, title + body text, its visibility. Main positions the SceneObject and calls showStep/hide.
+// Owns: outlined title + body text (subtitle style, no plate), its visibility. Main positions the SceneObject and calls showStep/hide.
 // Must not: know the step content or order — it renders whatever it is told.
 import {FlexLayout} from "SpectaclesUIKit.lspkg/Scripts/Components/Layout2D/Flex/FlexLayout"
 import {FlexItem} from "SpectaclesUIKit.lspkg/Scripts/Components/Layout2D/Flex/FlexItem"
 import {FlexAlign, FlexAlignSelf, FlexDirection, FlexJustify} from "SpectaclesUIKit.lspkg/Scripts/Components/Layout2D/Flex/FlexTypes"
-import {BackPlate} from "SpectaclesUIKit.lspkg/Scripts/BackPlate"
 import {Billboard} from "SpectaclesInteractionKit.lspkg/Components/Interaction/Billboard/Billboard"
 
 const PAD = 1.5
@@ -58,8 +57,7 @@ export class InsideFearStepCardUI extends BaseScriptComponent {
   onAwake() {
     this.sceneObject.createComponent("Component.Canvas")
     this.sceneObject.createComponent(Billboard.getTypeName())
-    const plate = this.sceneObject.createComponent(BackPlate.getTypeName()) as BackPlate
-    plate.size = new vec2(this.widthCm, this.heightCm)
+    // No backplate: the text reads like a subtitle, outlined, placed in the empty band above the scene (Del 2026-10-24)
 
     const content = global.scene.createSceneObject("Content")
     content.setParent(this.sceneObject)
@@ -81,10 +79,8 @@ export class InsideFearStepCardUI extends BaseScriptComponent {
     this.bodyText = body.text
     flex.onInitialized.add(() => flex.addItems([title.item, body.item]))
 
-    plate.onInitialized.add(() => {
-      this.ready = true
-      this.sceneObject.enabled = this.wantVisible   // LAST (G3)
-    })
+    this.ready = true
+    this.sceneObject.enabled = this.wantVisible   // LAST (G3)
   }
 
   private makeText(parent: SceneObject, name: string, role: TextRole, w: number, h: number, color: vec4, wrap: boolean) {
@@ -94,6 +90,9 @@ export class InsideFearStepCardUI extends BaseScriptComponent {
     t.depthTest = true
     applyTextRole(t, role)
     t.textFill.color = color
+    t.outlineSettings.enabled = true
+    t.outlineSettings.size = 0.45
+    t.outlineSettings.fill.color = new vec4(0.22, 0.12, 0.36, 1)   // keeps white text legible over the lavender dome
     t.horizontalAlignment = HorizontalAlignment.Center
     t.verticalAlignment = VerticalAlignment.Center
     t.horizontalOverflow = wrap ? HorizontalOverflow.Wrap : HorizontalOverflow.Overflow
