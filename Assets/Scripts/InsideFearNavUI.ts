@@ -12,7 +12,7 @@ import Event, {PublicApi} from "SpectaclesInteractionKit.lspkg/Utils/Event"
 
 const ICON_NEXT = requireAsset("../Icons/skip_next.png") as Texture
 const ICON_EXIT = requireAsset("../Icons/logout.png") as Texture
-const PAD = 1.5
+const PAD = 0.8
 const GAP = 2.0
 
 const FONT_SIZE_SCALE = 1.0
@@ -35,15 +35,15 @@ export class InsideFearNavUI extends BaseScriptComponent {
   nextLabel: string = "Next"
   @input
   @hint("Label of the leave button (brief: 退 / Exit)")
-  exitLabel: string = "退 / Exit"
+  exitLabel: string = "Exit"
   @input
-  @hint("Width of each button in cm (brief: about 15 cm)")
+  @hint("Width of each button in cm (small: the panel must not hide the scene)")
   @widget(new SliderWidget(8, 25, 1))
-  buttonWidthCm: number = 15
+  buttonWidthCm: number = 9
   @input
   @hint("Distance in cm at which the panel re-centers in front of the user")
   @widget(new SliderWidget(20, 200, 1))
-  followDistanceCm: number = 60
+  followDistanceCm: number = 80
   @input
   @hint("Visible when the Lens launches (normally off — shown by Main when inside)")
   startVisible: boolean = false
@@ -72,6 +72,7 @@ export class InsideFearNavUI extends BaseScriptComponent {
       const h = btnH + PAD * 2
       frame.innerSize = new vec2(w, h)
       frame.padding = new vec2(PAD, PAD)
+      frame.margin = 1   // default 4 cm glass margin made the panel hide the scene
       frame.showCloseButton = false
       frame.showFollowButton = false
       frame.tagAlongDistance = this.followDistanceCm

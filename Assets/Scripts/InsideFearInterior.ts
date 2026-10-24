@@ -214,7 +214,7 @@ export class InsideFearInterior extends BaseScriptComponent {
         this.part(root, "Cobble", this.neuronMesh, cob, new vec3(x + rnd() * 8, fy, z + rnd() * 6), new vec3(38 + rnd() * 6, 3, 26), quat.angleAxis(rnd() * 0.4 - 0.2, vec3.up()))
       }
     }
-    const dome = this.tint(0.6, 0.14, 0.28)   // saturated enough to read red, not grey, over the preview see-through
+    const dome = this.tint(0.86, 0.82, 0.96)   // lavender (Del 2026-10-24); labels below are dark so they read on it
     dome.mainPass.twoSided = true
     this.part(root, "Dome", this.neuronMesh, dome, new vec3(0, fy, 0), new vec3(R * 2, R * 1.3, R * 2))
   }
@@ -292,7 +292,7 @@ export class InsideFearInterior extends BaseScriptComponent {
     const txt = label.createComponent("Component.Text") as Text
     txt.text = "THALAMUS\nsensory relay"
     txt.size = 150
-    txt.textFill.color = new vec4(0.92, 0.86, 1, 1)
+    txt.textFill.color = new vec4(0.3, 0.2, 0.5, 1)
     txt.horizontalAlignment = HorizontalAlignment.Center
     label.createComponent(Billboard.getTypeName())
     this.thalamusTop = base.add(new vec3(0, 159, 0))

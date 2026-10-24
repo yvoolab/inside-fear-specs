@@ -44,8 +44,8 @@
   DefaultScriptInputs:
     - nextLabel: Next
       exitLabel: 退 / Exit
-      buttonWidthCm: !<float> "15.000000"
-      followDistanceCm: !<float> "60.000000"
+      buttonWidthCm: !<float> 15.000000
+      followDistanceCm: !<float> 60.000000
       startVisible: false
   ScriptTypes:
     -
@@ -56,8 +56,8 @@
     - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'
     - '// @ui {"widget":"group_start", "label":"Settings"}'
     - '// @input string nextLabel = "Next" {"hint":"Label of the advance button"}'
-    - '// @input string exitLabel = "退 / Exit" {"hint":"Label of the leave button (brief: 退 / Exit)"}'
-    - '// @input float buttonWidthCm = 15 {"hint":"Width of each button in cm (brief: about 15 cm)", "widget":"slider", "min":8, "max":25, "step":1}'
-    - '// @input float followDistanceCm = 60 {"hint":"Distance in cm at which the panel re-centers in front of the user", "widget":"slider", "min":20, "max":200, "step":1}'
+    - '// @input string exitLabel = "Exit" {"hint":"Label of the leave button (brief: 退 / Exit)"}'
+    - '// @input float buttonWidthCm = 9 {"hint":"Width of each button in cm (small: the panel must not hide the scene)", "widget":"slider", "min":8, "max":25, "step":1}'
+    - '// @input float followDistanceCm = 80 {"hint":"Distance in cm at which the panel re-centers in front of the user", "widget":"slider", "min":20, "max":200, "step":1}'
     - '// @input bool startVisible {"hint":"Visible when the Lens launches (normally off — shown by Main when inside)"}'
     - '// @ui {"widget":"group_end"}'

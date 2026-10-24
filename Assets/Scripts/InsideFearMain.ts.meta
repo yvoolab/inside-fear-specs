@@ -29,6 +29,7 @@
   PackagePolicy: CanBeUnpacked
   ScriptInputsHidden:
     amygdala: false
+    autoDemo: false
     brain: false
     cameraObject: false
     enterButton: false
@@ -66,6 +67,7 @@
       stepTexts: !<string[]>
         []
       volume: !<float> 1.000000
+      autoDemo: false
   ScriptTypes:
     -
       {}

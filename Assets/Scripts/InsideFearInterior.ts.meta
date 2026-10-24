@@ -51,14 +51,14 @@
     - neuronMesh: !<reference.RenderMesh> 00000000-0000-0000-0000-000000000000
       synapseMesh: !<reference.RenderMesh> 00000000-0000-0000-0000-000000000000
       neuronMaterial: !<reference.Material> 00000000-0000-0000-0000-000000000000
-      neuronCount: !<float> "18.000000"
-      neuronSizeCm: !<float> "14.000000"
-      floorDropCm: !<float> "150.000000"
-      minRadiusCm: !<float> "120.000000"
-      maxRadiusCm: !<float> "280.000000"
-      calmColor: !<Vec4> {x: "0.000000", y: "0.000000", z: "1.000000", w: "1.000000"}
-      activeColor: !<Vec4> {x: "1.000000", y: "0.000000", z: "0.000000", w: "1.000000"}
-      alarmColor: !<Vec4> {x: "1.000000", y: "0.000000", z: "0.000000", w: "1.000000"}
+      neuronCount: !<float> 18.000000
+      neuronSizeCm: !<float> 14.000000
+      floorDropCm: !<float> 150.000000
+      minRadiusCm: !<float> 120.000000
+      maxRadiusCm: !<float> 280.000000
+      calmColor: !<Vec4> {x: 0.000000, y: 0.000000, z: 1.000000, w: 1.000000}
+      activeColor: !<Vec4> {x: 1.000000, y: 0.000000, z: 0.000000, w: 1.000000}
+      alarmColor: !<Vec4> {x: 1.000000, y: 0.000000, z: 0.000000, w: 1.000000}
   ScriptTypes:
     -
       {}

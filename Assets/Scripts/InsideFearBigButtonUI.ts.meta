@@ -44,8 +44,8 @@
   DefaultScriptInputs:
     - label: Start
       icon: !<reference.Texture> 00000000-0000-0000-0000-000000000000
-      widthCm: !<float> "20.000000"
-      heightCm: !<float> "7.000000"
+      widthCm: !<float> 20.000000
+      heightCm: !<float> 7.000000
       startVisible: true
   ScriptTypes:
     -
