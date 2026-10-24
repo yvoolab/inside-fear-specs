@@ -32,6 +32,7 @@
     alarmColor: false
     calmColor: false
     floorDropCm: false
+    litMaterial: false
     maxRadiusCm: false
     minRadiusCm: false
     neuronCount: false
@@ -51,6 +52,7 @@
     - neuronMesh: !<reference.RenderMesh> 00000000-0000-0000-0000-000000000000
       synapseMesh: !<reference.RenderMesh> 00000000-0000-0000-0000-000000000000
       neuronMaterial: !<reference.Material> 00000000-0000-0000-0000-000000000000
+      litMaterial: !<reference.Material> 00000000-0000-0000-0000-000000000000
       neuronCount: !<float> 18.000000
       neuronSizeCm: !<float> 14.000000
       floorDropCm: !<float> 150.000000
@@ -70,6 +72,7 @@
     - '// @input Asset.RenderMesh neuronMesh {"hint":"Sphere mesh used for neuron bodies and pulses"}'
     - '// @input Asset.RenderMesh synapseMesh {"hint":"Box mesh stretched into thin synapse rods"}'
     - '// @input Asset.Material neuronMaterial {"hint":"Unlit material cloned for neurons, synapses and pulses"}'
+    - '// @input Asset.Material litMaterial {"hint":"Lit (PBR) material for solid parts, so bodies get light and shade and read as 3D. Empty = all unlit"}'
     - '// @ui {"widget":"group_end"}'
     - '// @ui {"widget":"separator"}'
     - '// @ui {"widget":"label", "label":"<span style=\"color: #60A5FA;\">Settings</span>"}'

@@ -106,7 +106,7 @@
   Enabled: true
   renderLayer: 1310719
   LightType: Directional
-  Intensity: 1.000000
+  Intensity: 1.900000
   ShadowDensity: 0.440000
   ShadowBlurRadius: 4.000000
   ShadowTextureSize: 512
@@ -154,7 +154,7 @@
   Enabled: true
   renderLayer: 1310719
   LightType: Ambient
-  Intensity: 1.000000
+  Intensity: 1.200000
   ShadowDensity: 1.000000
   ShadowBlurRadius: 0.000000
   ShadowTextureSize: 512
@@ -1924,6 +1924,7 @@
   Enabled: true
   ScriptAsset: !<reference> 0edf3daf-9667-4429-b361-ef01983eb3d1
   ScriptInputsDefault:
+    neuronCount: true
     floorDropCm: true
     minRadiusCm: true
     maxRadiusCm: true
@@ -1935,7 +1936,8 @@
       neuronMesh: !<reference.RenderMesh> 574c1d77-f720-4e5e-949f-fce00cc1c2ae
       synapseMesh: !<reference.RenderMesh> fe52ea45-27cb-42e2-beb2-19e3ed233e07
       neuronMaterial: !<reference.Material> cece3ebf-e46c-4638-b5bb-f40a248786eb
-      neuronCount: !<float> 14.000000
+      litMaterial: !<reference.Material> eda9ad6b-2cb5-47fe-acdd-a5e813af3419
+      neuronCount: !<float> 18.000000
       neuronSizeCm: !<float> 36.000000
       floorDropCm: !<float> 150.000000
       minRadiusCm: !<float> 120.000000
