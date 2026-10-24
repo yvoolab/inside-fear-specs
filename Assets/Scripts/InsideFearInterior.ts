@@ -20,6 +20,10 @@ export class InsideFearInterior extends BaseScriptComponent {
   @input
   @hint("Unlit material cloned for neurons, synapses and pulses")
   neuronMaterial!: Material
+  @input
+  @allowUndefined
+  @hint("Lit (PBR) material for solid parts, so bodies get light and shade and read as 3D. Empty = all unlit")
+  litMaterial: Material
   @ui.group_end
 
   @ui.separator
@@ -80,7 +84,8 @@ export class InsideFearInterior extends BaseScriptComponent {
   private pulses: {so: SceneObject; syn: number; t: number}[] = []
   private crowns: vec3[] = []
   private thalamusTop = vec3.zero()
-  private streams: {a: vec3; b: vec3; arc: number; beads: SceneObject[]}[] = []
+  private synapseAt = vec3.zero()
+  private streams: {a: vec3; b: vec3; arc: number; beads: SceneObject[]; jit: vec3[]}[] = []
   private sphere = 1
   private box = new vec3(1, 1, 1)
   private mat!: Material
@@ -89,7 +94,6 @@ export class InsideFearInterior extends BaseScriptComponent {
   private inkMat!: Material
   private windowMat!: Material
   private nucleusMat!: Material
-  private beadMat!: Material
   private cableMat!: Material
   private pulseMat!: Material
   private cueRod!: SceneObject
@@ -102,16 +106,16 @@ export class InsideFearInterior extends BaseScriptComponent {
       print("[InsideFearInterior] required @input not wired (neuronMesh / synapseMesh / neuronMaterial)")
       return
     }
-    this.mat = this.neuronMaterial.clone()
-    this.doorMat = this.neuronMaterial.clone()
-    this.shineMat = this.neuronMaterial.clone()
-    this.inkMat = this.tint(0.17, 0.05, 0.1)   // storyboard outline colour; drawn as an inverted hull
+    const solid = this.litMaterial || this.neuronMaterial
+    this.mat = solid.clone()
+    this.doorMat = solid.clone()
+    this.shineMat = solid.clone()
+    this.inkMat = this.tint(0.17, 0.05, 0.1, false)   // storyboard outline colour; drawn as an inverted hull
     this.inkMat.mainPass.cullMode = CullMode.Front
     this.windowMat = this.tint(1, 0.93, 0.62)
     this.nucleusMat = this.tint(0.98, 0.6, 0.2)
-    this.beadMat = this.tint(1, 0.93, 0.6)
     this.cableMat = this.tint(1, 0.96, 0.88)
-    this.pulseMat = this.tint(1, 0.75, 0.25)
+    this.pulseMat = this.tint(1, 0.75, 0.25, false)   // glowing things stay unlit
     this.build()
     this.setActivity(0)
     this.createEvent("UpdateEvent").bind(() => this.tick())
@@ -133,7 +137,7 @@ export class InsideFearInterior extends BaseScriptComponent {
 
   /** World position a step happens at (step 1..6). */
   focusPointWorld(step: number): vec3 {
-    const c = this.crowns, at = [this.thalamusTop, vec3.lerp(this.thalamusTop, c[0], 0.5), c[0], c[2], c[3], c[0]]
+    const c = this.crowns, at = [this.thalamusTop, vec3.lerp(this.thalamusTop, c[0], 0.5), this.synapseAt, c[2], c[3], c[0]]
     return this.sceneObject.getTransform().getWorldTransform().multiplyPoint(at[Math.max(0, Math.min(at.length - 1, step - 1))])
   }
 
@@ -178,9 +182,9 @@ export class InsideFearInterior extends BaseScriptComponent {
     this.myelin(root, thalamusSide, c[0])
     this.myelin(root, c[0], c[1])
     this.addStream(root, thalamusSide, c[0], this.pulseMat)
-    // Glutamate hops over the crowns (arc) in lime — beadMat would vanish among the yellow dendrite tips
-    this.addStream(root, c[0], c[1], this.tint(0.55, 1, 0.3), 12, 90)
-    this.addStream(root, this.crowns[3], this.crowns[0], this.tint(0.45, 0.8, 1), 20, 90)   // arc clears the thalamus box
+    const side = bases[0].add(new vec3(-200, 0, 0)), partner = bases.slice(n).sort((x, y) => x.distance(side) - y.distance(side))[0] || bases[1]
+    this.buildSynapse(root, bases[0], partner)   // adds the glutamate stream (stream 1); partner ~2 m left so its dendrite shows side-on
+    this.addStream(root, this.crowns[3], this.crowns[0], this.tint(0.45, 0.8, 1, false), 20, 90)   // arc clears the thalamus box
     // Myelinated axons: each tower to its 2 nearest neighbours (deduped), along the floor
     const seen = new Set<string>()
     for (let i = 0; i < bases.length; i++) {
@@ -196,6 +200,7 @@ export class InsideFearInterior extends BaseScriptComponent {
     for (let s = 0; s < this.synapses.length; s++) {
       this.pulses.push({so: this.part(root, "Pulse" + s, this.neuronMesh, this.pulseMat, vec3.zero(), new vec3(7, 7, 7)), syn: s, t: rnd()})
     }
+    this.buildGlia(root, bases, rnd)
     this.buildCue(root, this.sphere, this.box)
     this.buildOrgan(root, this.sphere)
     print("[InsideFearInterior] built towers=" + this.neurons.length + " cables=" + this.synapses.length)
@@ -214,7 +219,7 @@ export class InsideFearInterior extends BaseScriptComponent {
         this.part(root, "Cobble", this.neuronMesh, cob, new vec3(x + rnd() * 8, fy, z + rnd() * 6), new vec3(38 + rnd() * 6, 3, 26), quat.angleAxis(rnd() * 0.4 - 0.2, vec3.up()))
       }
     }
-    const dome = this.tint(0.86, 0.82, 0.96)   // lavender (Del 2026-10-24); labels below are dark so they read on it
+    const dome = this.tint(0.86, 0.82, 0.96, false)   // lavender (Del 2026-10-24); labels below are dark so they read on it
     dome.mainPass.twoSided = true
     this.part(root, "Dome", this.neuronMesh, dome, new vec3(0, fy, 0), new vec3(R * 2, R * 1.3, R * 2))
   }
@@ -241,8 +246,8 @@ export class InsideFearInterior extends BaseScriptComponent {
     const to = from.add(dir.uniformScale(len))
     this.rod(parent, from, to, thick, mat)
     this.rod(parent, from, to, thick + InsideFearInterior.INK_CM * 2, this.inkMat)
-    if (depth === 0) {
-      this.part(parent, "Bead", this.neuronMesh, this.beadMat, to, new vec3(4, 4, 4), undefined, true)
+    if (depth === 0) {   // dendritic spine head, the tower's own colour (not a yellow "fruit")
+      this.part(parent, "Spine", this.neuronMesh, this.shineMat, to, new vec3(3, 3, 3), undefined, true)
       return
     }
     const kids = depth >= 2 ? 3 : 2, phase = rnd() * Math.PI * 2
@@ -268,11 +273,91 @@ export class InsideFearInterior extends BaseScriptComponent {
     }
   }
 
-  /** Three beads that run a → b only during their step (see stage()). */
-  private addStream(root: SceneObject, a: vec3, b: vec3, mat: Material, sizeCm = 9, arc = 0): void {
-    const beads = [0, 1, 2].map((k) => this.part(root, "StreamBead" + k, this.neuronMesh, mat, a, vec3.one().uniformScale(sizeCm)))   // no ink hull: it would stay behind when hidden
+  /** Beads that run a → b only during their step (see stage()); `spread` scatters them sideways into a cloud. */
+  private addStream(root: SceneObject, a: vec3, b: vec3, mat: Material, sizeCm = 9, arc = 0, count = 3, spread = 0): void {
+    const beads: SceneObject[] = [], jit: vec3[] = []
+    for (let k = 0; k < count; k++) {
+      beads.push(this.part(root, "StreamBead" + k, this.neuronMesh, mat, a, vec3.one().uniformScale(sizeCm)))   // no ink hull: it would stay behind when hidden
+      const ang = (k / count) * Math.PI * 2
+      jit.push(new vec3(0, Math.sin(ang) * spread, Math.cos(ang) * spread))
+    }
     beads.forEach((o) => (o.enabled = false))
-    this.streams.push({a, b, arc, beads})
+    this.streams.push({a, b, arc, beads, jit})
+  }
+
+  // ── Step 3 synapse, beside the amygdala tower at the same depth so sizes compare directly ──
+  // Del 2026-10-24: not the real ~1000× gap, but the volume difference must show:
+  // tower body (~47 cm) > axon terminal (12) > vesicles (2.4) > glutamate (1.2), across a 4 cm cleft.
+  private buildSynapse(root: SceneObject, towerA: vec3, towerB: vec3): void {
+    const S = towerA.add(new vec3(-80, 70, -5))   // left of tower 0 at its depth, in the open gap between the background towers
+    this.synapseAt = S
+    const gap = 4, termR = 6, headR = 4.5
+    const term = S.add(new vec3(gap / 2 + termR, 0, 0)), head = S.add(new vec3(-gap / 2 - headR * 0.8, 0, 0))
+    // presynaptic: tower 0's myelinated axon rises from its foot to the terminal bouton
+    const axonFrom = towerA.add(new vec3(-30, 10, 8)), axonTo = term.add(new vec3(-4, -12, 4))
+    this.myelin(root, axonFrom, axonTo)
+    this.rod(root, axonTo, term, 2.2, this.mat)
+    this.part(root, "AxonTerminal", this.neuronMesh, this.mat, term, new vec3(termR * 2, termR * 2, termR * 2), undefined, true)
+    for (let k = 0; k < 6; k++) {   // vesicles crowding the cleft-facing side, half sunk in the bouton
+      const a = 0.6 + (k % 2) * 0.35, b = (k / 6) * Math.PI * 2
+      const p = term.add(new vec3(-Math.cos(a), Math.sin(a) * Math.cos(b), Math.sin(a) * Math.sin(b)).uniformScale(termR * 0.85))
+      this.part(root, "Vesicle", this.neuronMesh, this.windowMat, p, new vec3(2.4, 2.4, 2.4), undefined, true)
+    }
+    // postsynaptic: a dendrite from the partner tower ends in a mushroom spine facing the cleft
+    const neck = head.add(new vec3(-headR - 5, 0, 0))
+    const dendFrom = towerB.add(new vec3(0, 85, 0))
+    this.rod(root, dendFrom, neck, 2.6, this.mat)
+    this.rod(root, dendFrom, neck, 2.6 + InsideFearInterior.INK_CM * 2, this.inkMat)
+    this.rod(root, neck, head, 1.8, this.mat)
+    this.part(root, "SpineHead", this.neuronMesh, this.shineMat, head, new vec3(headR * 1.6, headR * 2, headR * 2), undefined, true)
+    this.addStream(root, term.add(new vec3(-termR, 0, 0)), head.add(new vec3(headR * 0.8, 0, 0)), this.tint(0.55, 1, 0.3, false), 1.2, 0, 8, 1.6)
+    this.label(root, "synapse", S.add(new vec3(0, 16, 0)), 110)
+  }
+
+  // ── Glia, schematic: a few astrocytes (star body, many fine processes ending in feet on the towers)
+  // and oligodendrocytes (small body whose arms reach the white myelin it wraps). ──
+  private buildGlia(root: SceneObject, bases: vec3[], rnd: () => number): void {
+    const astro = this.tint(0.55, 0.88, 0.7), oligo = this.tint(0.93, 0.85, 1)
+    const n = InsideFearInterior.TOWER_DIRS.length
+    // astrocytes between a background tower and its nearest neighbour, at mid-body height
+    for (let k = 0; k < 3; k++) {
+      const i = n + k * 3
+      if (i >= bases.length) break
+      const j = bases.map((p, m) => ({m, d: m === i ? 1e9 : p.distance(bases[i])})).sort((x, y) => x.d - y.d)[0].m
+      const c = vec3.lerp(bases[i], bases[j], 0.5).add(new vec3(0, 55, 0))
+      this.part(root, "Astrocyte", this.neuronMesh, astro, c, new vec3(16, 14, 16), undefined, true)
+      const ends = [bases[i], bases[j]].map((b) => b.add(c.sub(b).normalize().uniformScale(20)).add(new vec3(0, 45, 0)))
+      for (let p = 0; p < 6; p++) {
+        const ang = rnd() * Math.PI * 2
+        ends.push(c.add(new vec3(Math.cos(ang) * 28, -10 + rnd() * 30, Math.sin(ang) * 28)))
+      }
+      for (const e of ends) {
+        this.rod(root, c, e, 1.6, astro)
+        this.part(root, "EndFoot", this.neuronMesh, astro, e, new vec3(3.5, 3.5, 3.5))
+      }
+      if (k === 0) this.label(root, "astrocyte (glia)", c.add(new vec3(0, 28, 0)), 100)
+    }
+    // oligodendrocytes above the two nearest floor cables in front of the user
+    const front = this.synapses.map((s, i) => ({i, m: vec3.lerp(s.a, s.b, 0.5)})).filter((o) => o.m.z < -100)
+      .sort((x, y) => x.m.length - y.m.length).slice(0, 2)
+    front.forEach((o, k) => {
+      const s = this.synapses[o.i], c = o.m.add(new vec3(0, 32, 0))
+      this.part(root, "Oligodendrocyte", this.neuronMesh, oligo, c, new vec3(12, 12, 12), undefined, true)
+      for (const f of [0.3, 0.5, 0.7]) this.rod(root, c, vec3.lerp(s.a, s.b, f).add(new vec3(0, 3, 0)), 1.6, oligo)
+      if (k === 0) this.label(root, "oligodendrocyte (glia)\nmakes the myelin", c.add(new vec3(0, 22, 0)), 100)
+    })
+  }
+
+  private label(root: SceneObject, text: string, pos: vec3, size: number): void {
+    const so = global.scene.createSceneObject("Label")
+    so.setParent(root)
+    so.getTransform().setLocalPosition(pos)
+    const txt = so.createComponent("Component.Text") as Text
+    txt.text = text
+    txt.size = size
+    txt.textFill.color = new vec4(0.3, 0.2, 0.5, 1)
+    txt.horizontalAlignment = HorizontalAlignment.Center
+    so.createComponent(Billboard.getTypeName())
   }
 
   // Thalamus: purple relay box on a stand with four lit windows and a sign. Returns where its cable leaves.
@@ -335,8 +420,8 @@ export class InsideFearInterior extends BaseScriptComponent {
     return so
   }
 
-  private tint(r: number, g: number, b: number): Material {
-    const m = this.neuronMaterial.clone()
+  private tint(r: number, g: number, b: number, lit = true): Material {
+    const m = (lit && this.litMaterial ? this.litMaterial : this.neuronMaterial).clone()
     m.mainPass.baseColor = new vec4(r, g, b, 1)
     return m
   }
@@ -434,8 +519,8 @@ export class InsideFearInterior extends BaseScriptComponent {
     for (const st of this.streams) {
       if (!st.beads[0].enabled) continue
       st.beads.forEach((b, k) => {
-        const f = (this.time * 0.6 + k / 3) % 1
-        b.getTransform().setLocalPosition(vec3.lerp(st.a, st.b, f).add(new vec3(0, st.arc * Math.sin(Math.PI * f), 0)))
+        const f = (this.time * 0.6 + k / st.beads.length) % 1
+        b.getTransform().setLocalPosition(vec3.lerp(st.a, st.b, f).add(new vec3(0, st.arc * Math.sin(Math.PI * f), 0)).add(st.jit[k]))
       })
     }
     if (this.activity <= 0.05) return
