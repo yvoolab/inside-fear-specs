@@ -82,6 +82,9 @@ export class InsideFearMain extends BaseScriptComponent {
   @hint("Master volume of every cue; 0 = silent (dev runs on a shared machine — set back to 1 before recording)")
   @widget(new SliderWidget(0, 1, 0.05))
   volume: number = 1
+  @input
+  @hint("Recording only: plays the whole tour on timers (Start, Enter, six steps, Exit). Leave off.")
+  autoDemo: boolean = false
   @ui.group_end
 
   // ── Public, readable state (LEAF asserts on these) ──
@@ -125,8 +128,20 @@ export class InsideFearMain extends BaseScriptComponent {
       this.nav.onExit.add(() => this.onExitPressed())
       this.interior.sceneObject.enabled = false
       this.applyOutside()
+      if (this.autoDemo) this.runDemo()
     })
     this.createEvent("UpdateEvent").bind(() => this.tick())
+  }
+
+  /** Demo-video autopilot: [seconds before, action]. Step times = narration + ~1 s; step 4 longer (turn around). */
+  private runDemo(): void {
+    const next = () => this.onNextPressed()
+    const plan: [number, () => void][] = [[2.5, () => this.onStartPressed()], [4, () => this.onEnterPressed()], [3, next],
+      [12.8, next], [12.4, next], [13.1, next], [17, next], [13.7, next], [12.4, () => this.onExitPressed()]]
+    let i = 0
+    const ev = this.createEvent("DelayedCallbackEvent") as DelayedCallbackEvent
+    ev.bind(() => { plan[i++][1](); if (i < plan.length) ev.reset(plan[i][0]) })
+    ev.reset(plan[0][0])
   }
 
   // ── Transitions ─────────────────────────────────────────────────────────
