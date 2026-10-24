@@ -45,10 +45,10 @@
   DefaultScriptInputs:
     - cameraObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       caption: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
-      widthCm: !<float> "22,000000"
-      distanceCm: !<float> "100,000000"
-      leftDeg: !<float> "24,000000"
-      dropCm: !<float> "2,000000"
+      widthCm: !<float> "22.000000"
+      distanceCm: !<float> "100.000000"
+      leftDeg: !<float> "24.000000"
+      dropCm: !<float> "2.000000"
   ScriptTypes:
     -
       {}

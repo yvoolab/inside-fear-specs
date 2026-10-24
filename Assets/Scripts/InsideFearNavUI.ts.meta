@@ -44,8 +44,8 @@
   DefaultScriptInputs:
     - nextLabel: Next
       exitLabel: 退 / Exit
-      buttonWidthCm: !<float> "15,000000"
-      followDistanceCm: !<float> "60,000000"
+      buttonWidthCm: !<float> "15.000000"
+      followDistanceCm: !<float> "60.000000"
       startVisible: false
   ScriptTypes:
     -

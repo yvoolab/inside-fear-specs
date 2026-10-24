@@ -60,12 +60,12 @@
       nav: !<MappingBased.AssignableType_4> 00000000-0000-0000-0000-000000000000
       stepCard: !<MappingBased.AssignableType_5> 00000000-0000-0000-0000-000000000000
       neuriCard: !<MappingBased.AssignableType_6> 00000000-0000-0000-0000-000000000000
-      glowColor: !<Vec4> {x: "1,000000", y: "0,000000", z: "0,000000", w: "1,000000"}
-      growDurationSec: !<float> "1,000000"
-      envelopeScale: !<float> "30,000000"
+      glowColor: !<Vec4> {x: 1.000000, y: 0.000000, z: 0.000000, w: 1.000000}
+      growDurationSec: !<float> 1.000000
+      envelopeScale: !<float> 30.000000
       stepTexts: !<string[]>
         []
-      volume: !<float> "1,000000"
+      volume: !<float> 1.000000
   ScriptTypes:
     -
       {}
@@ -92,4 +92,5 @@
     - '// @input float envelopeScale = 30 {"hint":"Scale multiplier of the amygdala when it envelops the user (14 cm × 30 ≈ 4 m)", "widget":"slider", "min":10, "max":60, "step":1}'
     - "// @input string[] stepTexts = {} {\"hint\":\"Optional narration override, one entry per step as 'Title|Body'. Leave empty for the textbook defaults.\"}"
     - '// @input float volume = 1 {"hint":"Master volume of every cue; 0 = silent (dev runs on a shared machine — set back to 1 before recording)", "widget":"slider", "min":0, "max":1, "step":0.05}'
+    - '// @input bool autoDemo {"hint":"Recording only: plays the whole tour on timers (Start, Enter, six steps, Exit). Leave off."}'
     - '// @ui {"widget":"group_end"}'
