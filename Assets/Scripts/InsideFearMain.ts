@@ -13,6 +13,7 @@ import {InsideFearInterior} from "./InsideFearInterior"
 import {InsideFearNeuriCard} from "./InsideFearNeuriCard"
 
 const SFX_CLICK = requireAsset("../GeneratedSFX/Click.wav") as AudioTrackAsset
+const MOM_SCOLD = requireAsset("../Narration/MomScold.mp3") as AudioTrackAsset   // the stimulus: "How could you?!" (synthetic voice)
 const NARRATION = [   // Neuri's lines (tools/neuri_voice.py), spoken from her card
   requireAsset("../Narration/Neuri1.mp3") as AudioTrackAsset,
   requireAsset("../Narration/Neuri2.mp3") as AudioTrackAsset,
@@ -140,6 +141,7 @@ export class InsideFearMain extends BaseScriptComponent {
   private onStartPressed(): void {
     if (this.state !== "outside") return
     this.play(SFX_CLICK)
+    this.play(MOM_SCOLD)
     this.setLit(true)
     this.startButton.setVisible(false)
     this.enterButton.setVisible(true)

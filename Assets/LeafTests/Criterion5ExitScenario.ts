@@ -1,4 +1,4 @@
-// Done criterion 5: pinch 退 / Exit → user is back outside, brain in its normal state, Start available again.
+// Done criterion 5: pinch Exit → user is back outside, brain in its normal state, Start available again.
 import {Scenario} from "Leaf.lspkg/Scenarios/scenario/Scenario"
 import {expect} from "Leaf.lspkg/Utils/common/Expect"
 import {findSceneObjectByName, sleep} from "Leaf.lspkg/Utils/common/Utils"
@@ -16,7 +16,7 @@ export class Criterion5ExitScenario extends Scenario {
     await tap("Next")
     await tap("Next")
 
-    await tap("退 / Exit")
+    await tap("Exit")
     expect(main().state).toBe("exiting")
     await sleep(ENVELOPE_WAIT_MS)
 

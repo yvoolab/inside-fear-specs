@@ -47,7 +47,7 @@ export class Criterion2EnterScenario extends Scenario {
     expect(left).toBeGreaterThan(0)
     expect(rightN).toBeGreaterThan(0)
     expect(buttonVisible("Next")).toBe(true)
-    expect(buttonVisible("退 / Exit")).toBe(true)
+    expect(buttonVisible("Exit")).toBe(true)
     expect(buttonVisible("EnterButton")).toBe(false)
   }
 }

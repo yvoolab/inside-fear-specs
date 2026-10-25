@@ -67,7 +67,7 @@ export async function ensureOutside(): Promise<void> {
   const m = main()
   if (m.state === "triggered") { await tap("EnterButton"); await sleep(ENVELOPE_WAIT_MS) }
   if (m.state === "entering") await sleep(ENVELOPE_WAIT_MS)
-  if (m.state === "inside") { await tap("退 / Exit"); await sleep(ENVELOPE_WAIT_MS) }
+  if (m.state === "inside") { await tap("Exit"); await sleep(ENVELOPE_WAIT_MS) }
   if (m.state === "exiting") await sleep(ENVELOPE_WAIT_MS)
   if (m.state !== "outside") throw new Error(`could not reach outside, state=${m.state}`)
 }
