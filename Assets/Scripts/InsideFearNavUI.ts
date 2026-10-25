@@ -1,4 +1,4 @@
-// InsideFearNavUI — head-following Frame with the two interior buttons: Next and "退 / Exit".
+// InsideFearNavUI — lazily head-following Frame (below the gaze, so it never covers the scene) with the two interior buttons: Next and "退 / Exit".
 // Owns: the Frame, both buttons, its visibility. Shown only while inside the amygdala.
 // Expects: nothing wired; icons are fixed assets. Main subscribes to onNext / onExit.
 // Must not: track the step or decide when the tour ends.
@@ -9,6 +9,7 @@ import {Frame} from "SpectaclesUIKit.lspkg/Scripts/Components/Frame/Frame"
 import {Button} from "SpectaclesUIKit.lspkg/Scripts/Components/Button/Button"
 import {ElementContent} from "SpectaclesUIKit.lspkg/Scripts/Components/Content/ElementContent"
 import Event, {PublicApi} from "SpectaclesInteractionKit.lspkg/Utils/Event"
+import WorldCameraFinderProvider from "SpectaclesInteractionKit.lspkg/Providers/CameraProvider/WorldCameraFinderProvider"
 
 const ICON_NEXT = requireAsset("../Icons/skip_next.png") as Texture
 const ICON_EXIT = requireAsset("../Icons/logout.png") as Texture
@@ -45,12 +46,17 @@ export class InsideFearNavUI extends BaseScriptComponent {
   @widget(new SliderWidget(20, 200, 1))
   followDistanceCm: number = 80
   @input
+  @hint("How far below the gaze the panel sits, cm at followDistanceCm (~22 at 80 cm ≈ 15° down: under the action, still in view)")
+  @widget(new SliderWidget(0, 50, 1))
+  dropCm: number = 22
+  @input
   @hint("Visible when the Lens launches (normally off — shown by Main when inside)")
   startVisible: boolean = false
   @ui.group_end
 
   private wantVisible = false
   private ready = false
+  private moving = true
   private _onNext = new Event<void>()
   private _onExit = new Event<void>()
 
@@ -75,9 +81,7 @@ export class InsideFearNavUI extends BaseScriptComponent {
       frame.margin = 1   // default 4 cm glass margin made the panel hide the scene
       frame.showCloseButton = false
       frame.showFollowButton = false
-      frame.tagAlongDistance = this.followDistanceCm
-      frame.setUseFollow(true)
-      frame.setFollowing(true)
+      frame.setUseFollow(false)   // own lazy follow below the gaze (Frame's tag-along re-centres it on the scene)
 
       const content = global.scene.createSceneObject("Content")
       content.setParent(frame.contentTransform.getSceneObject())
@@ -100,6 +104,26 @@ export class InsideFearNavUI extends BaseScriptComponent {
       this.ready = true
       this.sceneObject.enabled = this.wantVisible   // LAST line (G3)
     })
+    this.createEvent("UpdateEvent").bind(() => this.follow())
+  }
+
+  // Lazy follow: stay put until the slot drifts > 12° away, then glide there (~0.5 s); always face the user.
+  private follow(): void {
+    if (!this.ready || !this.wantVisible) return
+    const cam = WorldCameraFinderProvider.getInstance().getTransform()
+    const eye = cam.getWorldPosition()
+    // slot = below the gaze in the head's own frame, so looking down at something never puts the panel on it
+    const dir = cam.back.sub(cam.up.uniformScale(this.dropCm / this.followDistanceCm)).normalize()
+    const goal = eye.add(dir.uniformScale(this.followDistanceCm))
+    const t = this.sceneObject.getTransform()
+    const a = t.getWorldPosition().sub(eye)
+    const off = Math.acos(Math.max(-1, Math.min(1, a.normalize().dot(dir))))
+    if (off > 12 * Math.PI / 180) this.moving = true
+    if (this.moving) {
+      t.setWorldPosition(vec3.lerp(t.getWorldPosition(), goal, 1 - Math.exp(-getDeltaTime() * 6)))
+      if (t.getWorldPosition().distance(goal) < 1) this.moving = false
+    }
+    t.setWorldRotation(quat.lookAt(eye.sub(t.getWorldPosition()).normalize(), vec3.up()))
   }
 
   private makeButton(parent: SceneObject, label: string, icon: Texture, h: number, onClick: () => void): FlexItem {
@@ -119,6 +143,7 @@ export class InsideFearNavUI extends BaseScriptComponent {
   }
 
   setVisible(visible: boolean): void {
+    if (visible && !this.wantVisible) this.moving = true
     this.wantVisible = visible
     if (this.ready) this.sceneObject.enabled = visible
   }

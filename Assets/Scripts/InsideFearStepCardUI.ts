@@ -10,7 +10,7 @@ const PAD = 1.5
 const GAP = 0.6
 const TITLE_H = 4.0
 
-const FONT_SIZE_SCALE = 1.0
+const FONT_SIZE_SCALE = 1.3   // step text read too small in the demo video (Del 2026-10-25)
 type TextRole = "HeadlineXL" | "Headline2"
 const TYPE_SCALE: Record<TextRole, {size: number; weight: number}> = {
   HeadlineXL: {size: 62, weight: 700}, Headline2: {size: 48, weight: 500},
