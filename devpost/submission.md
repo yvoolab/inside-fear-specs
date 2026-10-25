@@ -1,37 +1,46 @@
-# Inside Fear — Devpost submission text (draft)
+# Inside Fear — Devpost submission text (draft v2, 2026-10-25 · not yet pasted into Devpost)
 
-**Tagline:** Step inside the brain's fear centre and watch the textbook come alive around you, with a museum-style narrator.
+**Tagline:** Someone snaps "How could you?!" and you freeze. Step inside your own amygdala and watch your fear switch on, spread through your body, and calm down.
 
 ## Inspiration
-Biology students read about the amygdala on a flat page. The learner behind this Lens wanted to "walk into the body" and see what no diagram can show: the region lighting up, the signal firing, the alarm reaching other organs. Specs can put a one-metre brain in your room and then let that region grow around you.
+Everyone knows the moment: a parent or a teacher raises their voice, your heart pounds and your mind goes blank before you have even understood the words. Biology textbooks explain this with a flat diagram of the amygdala. The learner behind this Lens wanted to "walk into the body" and watch that moment from the inside, at the scale of the cells that make it happen, with someone explaining each step.
+
+## Who it is for
+Secondary-school students meeting the fear pathway in biology or psychology, and anyone who freezes when they are scolded and wants to know what their brain is doing. Knowing that fear takes a fast shortcut first and gets checked by a slower road afterwards is a useful thing to know about yourself.
 
 ## What it does
-A translucent brain floats about 1.2 m in front of you. Pinch **Start**: a reproachful voice is heard, and the amygdala, the brain's fear region, lights up warm orange. Pinch **Enter** and the lit amygdala grows until it surrounds you; the outside brain fades and you are standing in a cell-scale scene of neurons, synapses and travelling signal pulses, in front, behind, left and right. Pinch **Next** to follow the textbook fear pathway step by step, each with a short text card next to the event and a spoken narration line emitted from where it happens:
+A translucent brain about a metre wide floats in your room. Pinch **Start**: a voice snaps "How could you?!" and the amygdala, the brain's fear centre, lights up red. Pinch **Enter** and the lit amygdala grows until it surrounds you; you are now standing inside it, among neurons hanging in the tissue all around you, in front, behind, left and right.
 
-1. Stimulus: the voice arrives as a signal from the auditory pathway into the amygdala.
-2. Neurons fire: amygdala neurons activate; glutamate is released across synapses.
-3. Alarm goes out: a signal reaches the hypothalamus; adrenaline and cortisol are released; heart and breathing speed up. This step happens behind you: a small arrow and the sound itself point you there, and a pulsing "heart & lungs" marker shows the alarm reaching other organs.
-4. Fear fades: the threat passes, the neurons calm and the amygdala returns to its normal colour.
+Neuri, the child who was just scolded, tells the story in the first person from a floating card, one step at a time (pinch **Next**):
 
-Pinch **退 / Exit** and the interior shrinks back into the brain; you are outside again with Start available.
+1. **Sound arrives**: the scolding travels from the ears to the thalamus, the brain's relay station.
+2. **The fast shortcut**: a direct path carries the sound into the amygdala before the words are even understood.
+3. **Neurons fire**: at a synapse right next to you, glutamate crosses the gap from a see-through axon terminal full of vesicles to the receptors on the next neuron. Sizes are not to scale, but their order is: neuron body > axon terminal > vesicle > glutamate.
+4. **Alarm goes out**: this step happens behind you; an arrow and the sound itself make you turn round. The hypothalamus and brainstem raise the heart rate and breathing and make you freeze.
+5. **The slow road checks**: the prefrontal cortex works out that it was only words and sends calming waves to the amygdala.
+6. **Fear fades**: the neurons settle; stress hormones take a while longer, so you still feel a little shaky.
+
+Pinch **Exit** and the amygdala shrinks back into the brain; you are outside again with Start available.
 
 ## Why glasses
-On a screen you look at a brain. Here the lit region comes to you and surrounds you, and you turn your head to see the mechanism happening around you, hands free except for one pinch. Everything sits at real-world scale in centimetres and inside the Specs field of view from where you stand.
+On a screen you look at a picture of a brain. Here the region comes to you: it grows around you, and you turn your head to follow the fear response as it moves through the tissue, hands free except for one pinch. Everything sits at room scale in centimetres and inside the Specs field of view from where you stand.
 
 ## How it was built
 - Planned with the Devpost *Learn AR with Specs* skill pack (`plan-lens` interview → `devpost/design-brief.md`, approved by the learner before any code).
-- Built by Claude Code with the CLAD plugin driving Lens Studio 5.24.1 through the Lens Studio MCP (scene built with VirtualScene, materials and meshes as native presets, Spectacles Interaction Kit + UI Kit for every button and card).
-- One TypeScript state machine (`InsideFearMain.ts`) owns the flow: outside → triggered → entering → inside → exiting. Separate modules build the interior (neurons, synapses, pulses, cue arrow, organ marker) and the UI (big buttons, head-following Next/Exit panel, step card).
+- Built by Claude Code with the CLAD plugin driving Lens Studio 5.24.1 through the Lens Studio MCP; Spectacles Interaction Kit + UI Kit for every button and card.
+- One TypeScript state machine (`InsideFearMain.ts`) owns the flow: outside → triggered → entering → inside → exiting. Separate modules build the interior, the Next/Exit panel, the step text and Neuri's card.
+- The cell-scale scene is generated at runtime with `MeshBuilder`: each neuron is one mesh of smooth tapering tubes (soma, dendrites radiating in every direction, axon to a myelinated cable), with no outlines, so lighting carries the 3D shape. Far cells fade into the background colour for depth. Astrocytes and oligodendrocytes are shown schematically. The visual style follows widely watched 3D neuroscience animations.
 - Tested with LEAF: one scenario per done criterion in the brief, run in the Lens Studio preview; all five pass (see `devpost/leaf-results.md`).
-- Audio is fully synthetic: the step narration is offline neural text-to-speech (Piper, voice `en_US-ryan-high`), the blame voice and clicks are generated tones. No recordings of any person, no voice cloning, no music.
+- All voices are synthetic text-to-speech (Microsoft neural voices via edge-tts). No recordings of any person, no voice cloning, no music.
 
 ## Challenges
-- The display is additive, so the brain and amygdala had to stay light and translucent, and all text light on translucent panels.
+- The display is additive, so the scene stays light and translucent and all text is light with an outline.
 - A 1 m brain at 1.2 m overflows the Specs horizontal field of view; it now sits at about 1.4 m.
-- Step 3 happens behind the user by design, so a cue arrow plus spatial sound were needed to point there.
+- Showing size: the real gap between a neuron and a glutamate molecule is too large to show, so the scene keeps the order of sizes and puts the synapse beside its neuron for comparison.
+- Step 4 happens behind the user by design, so a cue arrow plus spatial sound point there. The Next/Exit panel follows the gaze lazily and stays below it, so it never covers what is being explained.
 
 ## What's next
-On-device TTS so the narration can follow a teacher's own script, proper anatomical brain and amygdala meshes, richer glutamate/synapse visuals, and the other emotions and their regions.
+Other emotions and their circuits, a teacher mode for writing your own narration, anatomical brain and amygdala meshes, and testing on real Specs for comfort and hand reach.
 
 ## Built with
 Lens Studio 5.24.1 · Spectacles Interaction Kit 2.0 · Spectacles UI Kit 2.0 · LEAF 2.0.2 · Claude Code + CLAD (ls-clad) · Lens Studio MCP · TypeScript
@@ -40,3 +49,11 @@ Lens Studio 5.24.1 · Spectacles Interaction Kit 2.0 · Spectacles UI Kit 2.0 ·
 - Video: https://youtu.be/bTYO3JB-hD0 (Public since 2026-10-23)
 - Code: https://github.com/yvoolab/inside-fear-specs
 - Devpost project (submitted 2026-10-23, editable until 2026-11-09): https://devpost.com/software/inside-fear
+
+---
+
+## Video v8 — first 30 seconds (plan, not part of the form)
+1. 0–6 s · title card over a dark frame: *"Someone snaps at you. Your heart races before you understand a word. Why?"*
+2. 6–12 s · second card: *"Inside Fear — a Specs Lens for students. Step inside your own amygdala."*
+3. 12–30 s · Lens: the brain floats in a real room (Sunlit Room preview); Start → "How could you?!" → amygdala lights up → Enter → the amygdala grows around the viewer.
+Then the six steps, with the camera moving slowly sideways for parallax and pushing in on the synapse at step 3.
