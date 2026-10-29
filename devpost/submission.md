@@ -1,4 +1,4 @@
-# Inside Fear — Devpost submission text (draft v2, 2026-10-25 · not yet pasted into Devpost)
+# Inside Fear — Devpost submission text (v2, pasted into Devpost 2026-10-29)
 
 **Tagline:** Someone snaps "How could you?!" and you freeze. Step inside your own amygdala and watch your fear switch on, spread through your body, and calm down.
 
@@ -46,7 +46,7 @@ Other emotions and their circuits, a teacher mode for writing your own narration
 Lens Studio 5.24.1 · Spectacles Interaction Kit 2.0 · Spectacles UI Kit 2.0 · LEAF 2.0.2 · Claude Code + CLAD (ls-clad) · Lens Studio MCP · TypeScript
 
 ## Links (form fields)
-- Video: https://youtu.be/bTYO3JB-hD0 (Public since 2026-10-23)
+- Video: https://youtu.be/BTCfWfzXbUc (take 8, Public since 2026-10-29; the 2026-10-23 cut bTYO3JB-hD0 is now Unlisted)
 - Code: https://github.com/yvoolab/inside-fear-specs
 - Devpost project (submitted 2026-10-23, editable until 2026-11-09): https://devpost.com/software/inside-fear
 
